@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Общение с ботами</title><style>*{margin:0;padding:0;box-sizing:border-box;}
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Чат</title><style>*{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Tahoma,sans-serif;background:#0a0a1a;color:#e0e0e0;}
 .app{display:flex;height:100vh;}
 .sidebar{width:220px;background:#111128;padding:15px;display:flex;flex-direction:column;gap:5px;border-right:2px solid #1a1a3e;}
@@ -515,11 +515,16 @@ function updateNavigation() {
     }
   });
   
-  // Страница пользователей видна всем
+  // Страница пользователей видна только админам
   const usersPage = document.getElementById('page-users');
   const usersBtn = document.querySelector('[data-page="users"]');
-  if(usersPage) usersPage.style.display = '';
-  if(usersBtn) usersBtn.style.display = 'block';
+  if(hasAccess) {
+    if(usersPage) usersPage.style.display = '';
+    if(usersBtn) usersBtn.style.display = 'block';
+  } else {
+    if(usersPage) usersPage.style.display = 'none';
+    if(usersBtn) usersBtn.style.display = 'none';
+  }
   
   if(!hasAccess) {
     showPage('chat');
