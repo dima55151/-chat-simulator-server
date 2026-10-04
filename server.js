@@ -33,8 +33,6 @@ async function checkBan(ip, mac, network, provider, switchInfo, router, username
     const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['switch', switchInfo]);
     if (ban) bans.push(ban);
   }
-  
-  const router = req.body.router;
   if (router) {
     const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['router', router]);
     if (ban) bans.push(ban);
@@ -49,7 +47,7 @@ async function checkBan(ip, mac, network, provider, switchInfo, router, username
 // ===================== Регистрация =====================
 
 app.post('/api/register', async (req, res) => {
-  const { username, password, ip, mac, network, provider, switchInfo } = req.body;
+  const { username, password, ip, mac, network, provider, switchInfo, router } = req.body;
   
   if (!username || !password) {
     return res.json({ success: false, message: 'Введите имя пользователя и пароль' });
@@ -60,7 +58,7 @@ app.post('/api/register', async (req, res) => {
   }
   
   try {
-    const bans = await checkBan(ip, mac, network, provider, switchInfo, username);
+    const bans = await checkBan(ip, mac, network, provider, switchInfo, router, username);
     if (bans.length > 0) {
       return res.json({ success: false, message: 'Вы забанены! Причина: ' + bans[0].reason });
     }
