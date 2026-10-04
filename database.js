@@ -121,6 +121,34 @@ db.serialize(() => {
     )
   `);
 
+  // Добавляем админа если нет
+  db.get('SELECT COUNT(*) as count FROM users WHERE username = ?', ['Admin'], (err, row) => {
+    if (err) return console.error(err);
+    if (row.count === 0) {
+      db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['Admin', 'K9#xL2$vN8@qR5&wP3!mZ7', 'admin'], function(err) {
+        if (err) console.error('Ошибка добавления админа:', err);
+        else console.log('✅ Админ добавлен');
+      });
+    } else {
+      // Обновляем пароль если админ уже есть
+      db.run("UPDATE users SET password = ? WHERE username = ?", ['K9#xL2$vN8@qR5&wP3!mZ7', 'Admin'], function(err) {
+        if (err) console.error('Ошибка обновления пароля:', err);
+        else console.log('✅ Пароль админа обновлён');
+      });
+    }
+  });
+
+  // Добавляем модератора если нет
+  db.get('SELECT COUNT(*) as count FROM users WHERE username = ?', ['Moderator'], (err, row) => {
+    if (err) return console.error(err);
+    if (row.count === 0) {
+      db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['Moderator', 'mod123', 'mod'], function(err) {
+        if (err) console.error('Ошибка добавления модератора:', err);
+        else console.log('✅ Модератор добавлен');
+      });
+    }
+  });
+
   // Добавляем правила по умолчанию
   db.get('SELECT COUNT(*) as count FROM rules', (err, row) => {
     if (err) return console.error(err);
@@ -136,6 +164,14 @@ db.serialize(() => {
       const stmt = db.prepare('INSERT INTO rules (title, description) VALUES (?, ?)');
       rules.forEach(r => stmt.run(r[0], r[1]));
       stmt.finalize();
+    }
+  });
+
+  // Добавляем правила в базу если нет
+  db.get('SELECT COUNT(*) as count FROM rules WHERE title = ?', ['Чат'], (err, row) => {
+    if (err) return console.error(err);
+    if (row.count === 0) {
+      db.run('INSERT OR IGNORE INTO rules (title, description) VALUES (?, ?)', ['Чат', 'Общий чат для всех пользователей']);
     }
   });
 
