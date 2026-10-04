@@ -1,0 +1,1465 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Общение с ботами</title><style>*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Segoe UI,Tahoma,sans-serif;background:#0a0a1a;color:#e0e0e0;}
+.app{display:flex;height:100vh;}
+.sidebar{width:220px;background:#111128;padding:15px;display:flex;flex-direction:column;gap:5px;border-right:2px solid #1a1a3e;}
+.sidebar h2{color:#00d4ff;font-size:16px;margin-bottom:10px;text-align:center;padding-bottom:10px;border-bottom:1px solid #1a1a3e;}
+.nav-btn{background:#1a1a3e;color:#b0b0d0;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-size:13px;text-align:left;transition:all 0.2s;}
+.nav-btn:hover{background:#252560;color:#fff;}
+.nav-btn.active{background:#0066ff;color:#fff;font-weight:bold;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.page{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.page.active{display:flex;}
+.page-header{padding:15px 20px;background:#111128;border-bottom:1px solid #1a1a3e;}
+.page-header h1{color:#00d4ff;font-size:20px;}
+.content{flex:1;overflow-y:auto;padding:15px 20px;}
+.btn{background:#0066ff;color:white;border:none;padding:8px 16px;border-radius:5px;cursor:pointer;font-size:13px;}
+.btn:hover{background:#0055dd;}
+.btn-danger{background:#ff3344;}
+.btn-danger:hover{background:#dd2233;}
+.btn-success{background:#00cc66;}
+.btn-success:hover{background:#00aa55;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.card{background:#161638;border:1px solid #1a1a3e;border-radius:8px;padding:15px;margin-bottom:12px;}
+.card h3{color:#00d4ff;margin-bottom:10px;font-size:15px;}
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;color:#8888aa;margin-bottom:4px;font-size:13px;}
+.form-group input,.form-group select{width:100%;padding:8px 12px;background:#0a0a1a;border:1px solid #2a2a5e;border-radius:5px;color:#e0e0e0;font-size:13px;}
+.password-wrapper{position:relative;}
+.password-wrapper input{padding-right:40px;}
+.toggle-password{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8888aa;cursor:pointer;font-size:16px;padding:4px;}
+.toggle-password:hover{color:#00d4ff;}
+.saved-accounts{margin-top:15px;border-top:1px solid #1a1a3e;padding-top:15px;}
+.saved-accounts h4{color:#00d4ff;font-size:14px;margin-bottom:10px;}
+.saved-account-item{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#161638;border-radius:5px;margin-bottom:5px;}
+.saved-account-item span{color:#e0e0e0;font-size:13px;}
+.saved-account-item button{background:#0066ff;color:white;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;}
+.saved-account-item button:hover{background:#0055dd;}
+.saved-account-item .delete-btn{background:#ff3344;margin-left:5px;}
+.saved-account-item .delete-btn:hover{background:#dd2233;}
+.table{width:100%;border-collapse:collapse;}
+.table th,.table td{padding:8px 12px;text-align:left;border-bottom:1px solid #1a1a3e;}
+.table th{color:#00d4ff;}
+.badge{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:bold;}
+.badge-member{background:#333;color:#aaa;}
+.badge-vip{background:#ff9900;color:#fff;}
+.badge-mod{background:#00cc66;color:#fff;}
+.badge-admin{background:#0066ff;color:#fff;}
+.badge-owner{background:#ff3344;color:#fff;}
+.badge-banned{background:#ff0000;color:#fff;}
+.chat-container{display:flex;flex-direction:column;height:100%;}
+.chat-messages{flex:1;overflow-y:auto;padding:10px;}
+.chat-msg{margin-bottom:10px;padding:8px 12px;background:#161638;border-radius:8px;}
+.chat-msg .sender{font-weight:bold;margin-bottom:4px;}
+.chat-msg .time{font-size:11px;color:#8888aa;margin-top:4px;}
+.chat-msg.user{background:#1a1a4e;}
+.chat-msg.user .sender{color:#ffcc00;}
+.chat-input-area{display:flex;gap:10px;padding:10px;border-top:1px solid #1a1a3e;}
+.chat-input{flex:1;padding:8px 12px;background:#0a0a1a;border:1px solid #2a2a5e;border-radius:5px;color:#e0e0e0;font-size:13px;}
+.notification{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;}
+.notification.success{background:#00cc66;}
+.notification.error{background:#ff3344;}
+.notification.info{background:#0066ff;}
+.lesson-item{padding:12px;background:#161638;border-radius:8px;margin-bottom:8px;cursor:pointer;}
+.lesson-item:hover{background:#1a1a4e;}
+.lesson-item.completed{border-left:3px solid #00cc66;}
+.lesson-item .title{font-weight:bold;}
+.lesson-item .desc{font-size:12px;color:#8888aa;}
+</style></head><body><div id="loginPage" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a1a"><div class="card" style="width:400px;padding:30px"><h2 style="color:#00d4ff;text-align:center;margin-bottom:20px">Вход в чат</h2><div id="loginForm"><div class="form-group"><label>Имя пользователя</label><input type="text" id="loginUsername" placeholder="Введите имя"></div><div class="form-group password-wrapper"><label>Пароль</label><input type="password" id="loginPassword" placeholder="Введите пароль"><button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁</button></div><button class="btn" id="loginBtn" style="width:100%;margin-bottom:10px">Войти</button><div id="savedAccountsSection" class="saved-accounts" style="display:none"><h4>Сохранённые аккаунты</h4><div id="savedAccountsList"></div></div><p style="text-align:center;color:#8888aa;font-size:13px">Нет аккаунта? <a href="#" id="showRegister" style="color:#0066ff">Зарегистрироваться</a></p></div><div id="registerForm" style="display:none"><div class="form-group"><label>Имя пользователя</label><input type="text" id="regUsername" placeholder="Придумайте имя"></div><div class="form-group password-wrapper"><label>Пароль</label><input type="password" id="regPassword" placeholder="Придумайте пароль"><button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁</button></div><div class="form-group password-wrapper"><label>Повторите пароль</label><input type="password" id="regPassword2" placeholder="Повторите пароль"><button type="button" class="toggle-password" onclick="togglePassword('regPassword2', this)">👁</button></div><div id="passwordMatch" style="margin-bottom:10px;font-size:12px;color:#8888aa"></div><button class="btn btn-success" id="registerBtn" style="width:100%;margin-bottom:10px">Зарегистрироваться</button><p style="text-align:center;color:#8888aa;font-size:13px">Уже есть аккаунт? <a href="#" id="showLogin" style="color:#0066ff">Войти</a></p></div><div id="banMessage" style="display:none;text-align:center"><div style="font-size:48px;margin-bottom:15px">🚫</div><h3 style="color:#ff3344;margin-bottom:10px">Вам запрещён доступ!</h3><p id="banReasonText" style="color:#e0e0e0;margin-bottom:15px"></p><p style="color:#8888aa;font-size:12px">Если это ошибка, обратитесь к администратору</p></div></div></div><div class="app" id="mainApp" style="display:none"><div class="sidebar"><h2>Общение с ботами</h2><button class="nav-btn active" data-page="chat">Чат</button><button class="nav-btn" data-page="profile">Профиль</button><button class="nav-btn" data-page="userRules">Правила</button><button class="nav-btn" data-page="userStats">Статистика</button><button class="nav-btn" data-page="users">Пользователи</button><button class="nav-btn" data-page="bans">Баны</button><button class="nav-btn" data-page="rules">Правила</button><button class="nav-btn" data-page="stats">Статистика</button><button class="nav-btn" data-page="learn">Обучение</button><div style="margin-top:auto"><button class="nav-btn" id="autoChatBtn" style="width:100%">Авто-чат: ВЫКЛ</button><div style="display:flex;gap:5px;margin-top:5px"><button class="nav-btn btn-sm" id="saveBtn" style="flex:1">Сохранить</button><button class="nav-btn btn-sm" id="loadBtn" style="flex:1">Загрузить</button></div><button class="nav-btn" id="logoutBtn" style="width:100%;margin-top:10px;background:#ff3344">Выйти</button></div></div><div class="main"><div class="page active" id="page-chat"><div class="page-header"><h1>Чат</h1></div><div class="chat-container"><div class="chat-messages" id="chatMessages"></div><div class="chat-input-area"><input type="text" class="chat-input" id="chatInput" placeholder="Написать сообщение..."><button class="btn" id="sendBtn">Отправить</button></div></div></div><div class="page" id="page-profile"><div class="page-header"><h1>Мой профиль</h1></div><div class="content"><div class="card"><h3>Информация о аккаунте</h3><div id="profileInfo"></div></div></div></div><div class="page" id="page-userRules"><div class="page-header"><h1>Правила чата</h1></div><div class="content"><div class="card"><h3>Правила которые нужно соблюдать</h3><div id="userRulesList"></div></div></div></div><div class="page" id="page-userStats"><div class="page-header"><h1>Статистика чата</h1></div><div class="content"><div id="userChatStats"></div></div></div><div class="page" id="page-users"><div class="page-header"><h1>Пользователи</h1></div><div class="content"><div class="card"><h3>Добавить пользователя</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="form-group" style="flex:1;min-width:150px"><label>Имя</label><input type="text" id="newUserName" placeholder="Введите имя"></div><div class="form-group" style="flex:0 0 auto"><label>Роль</label><select id="newUserRole"><option value="member">Участник</option><option value="vip">VIP</option><option value="mod">Модератор</option><option value="admin">Админ</option><option value="owner">Владелец</option></select></div><div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-success" id="addUserBtn">Добавить</button></div></div></div><div class="card"><h3>Список пользователей</h3><table class="table"><thead><tr><th>Имя</th><th>Роль</th><th>Действия</th></tr></thead><tbody id="usersTable"></tbody></table></div></div></div><div class="page" id="page-bans"><div class="page-header"><h1>Баны</h1></div><div class="content"><div class="card"><h3>Забанить пользователя</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="form-group" style="flex:1;min-width:150px"><label>Пользователь</label><select id="banUserSelect"></select></div><div class="form-group" style="flex:0 0 auto"><label>Тип</label><select id="banTypeSelect"><option value="ip">IP</option><option value="mac">MAC</option><option value="hwid">HWID</option><option value="subnet">Подсеть</option><option value="provider">Провайдер</option><option value="name">Имя</option><option value="optika">Оптика</option><option value="commutator">Коммутатор</option></select></div><div class="form-group" style="flex:1;min-width:150px"><label>Причина</label><input type="text" id="banReason" placeholder="Введите причину"></div><div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-danger" id="banBtn">Забанить</button></div></div></div><div class="card"><h3>Забаненные пользователи</h3><table class="table"><thead><tr><th>Пользователь</th><th>Тип</th><th>Причина</th><th>Действие</th></tr></thead><tbody id="bansTable"></tbody></table></div></div></div><div class="page" id="page-rules"><div class="page-header"><h1>Правила</h1></div><div class="content"><div class="card"><h3>Добавить правило</h3><div style="display:flex;gap:10px"><div class="form-group" style="flex:1"><input type="text" id="newRuleInput" placeholder="Новое правило..."></div><button class="btn btn-success" id="addRuleBtn">Добавить</button></div></div><div class="card"><h3>Список правил</h3><ul id="rulesList"></ul></div></div></div><div class="page" id="page-stats"><div class="page-header"><h1>Статистика</h1></div><div class="content"><div class="card"><h3>Статистика</h3><p>Всего пользователей: <span id="statTotalUsers">0</span></p><p>Онлайн: <span id="statOnlineUsers">0</span></p><p>Всего сообщений: <span id="statTotalMessages">0</span></p><p>Забанено: <span id="statBannedUsers">0</span></p><p>Активных модераторов: <span id="statActiveMods">0</span></p><p>Количество правил: <span id="statRulesCount">0</span></p></div></div></div><div class="page" id="page-learn"><div class="page-header"><h1>Обучение</h1></div><div class="content"><div class="card"><h3>Уроки</h3><div id="lessonsList"></div></div><div class="card" id="lessonContent" style="display:none"><h3 id="lessonTitle"></h3><div id="lessonBody"></div><button class="btn btn-success" id="completeLessonBtn">Завершить урок</button><button class="btn" id="prevLessonBtn">Назад</button></div></div></div></div></div>
+<script>
+// ============ DATA ============
+const BOT_NAMES = ['Алиса','Боб','Кот_Мурка','Странник_42','Тень','Фантом','Нео','Зеро'];
+const BAN_LABELS = ['IP','MAC','HWID','Подсеть','Провайдер','Имя','Оптика','Коммутатор','Домен','Город','Провайдер2','Роутер'];
+const BAN_TYPES = ['ip','mac','hwid','subnet','provider','name','optika','commutator','domain','city','provider2','router'];
+const ROLE_LABELS = {member:'member',vip:'vip',mod:'mod',admin:'admin',owner:'owner'};
+
+// ============ STATE ============
+let state = {
+  users:[], bans:[], rules:[], messages:[],
+  totalMessages:0, actionLog:[], autoChat:false,
+  autoChatInterval:null, completedLessons:[]
+};
+let currentUser = null;
+
+// ============ ANTI-CHEAT SYSTEM ============
+const ANTI_CHEAT = {
+  violations: [],
+  maxViolations: 5,
+  scanInterval: null,
+  lastActionTime: 0,
+  actionRate: 0,
+  suspiciousActions: 0,
+  isBanned: false,
+  sessionKey: null,
+  integrityHash: '',
+  
+  init() {
+    this.sessionKey = this.generateSessionKey();
+    this.integrityHash = this.calculateIntegrityHash();
+    this.startScanning();
+    this.setupProtections();
+    this.logAction('Античит инициализирован');
+  },
+  
+  generateSessionKey() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let key = '';
+    for(let i = 0; i < 32; i++) {
+      key += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return key;
+  },
+  
+  calculateIntegrityHash() {
+    const code = document.body.innerHTML;
+    let hash = 0;
+    for(let i = 0; i < code.length; i++) {
+      const char = code.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(16);
+  },
+  
+  setupProtections() {
+    // Disable right-click
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      this.detectViolation('Попытка открыть контекстное меню');
+      return false;
+    });
+    
+    // Disable keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // F12
+      if(e.key === 'F12') {
+        e.preventDefault();
+        this.detectViolation('Попытка открыть DevTools (F12)');
+        return false;
+      }
+      // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+      if(e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) {
+        e.preventDefault();
+        this.detectViolation('Попытка открыть DevTools (Ctrl+Shift+' + e.key + ')');
+        return false;
+      }
+      // Ctrl+U (view source)
+      if(e.ctrlKey && e.key.toUpperCase() === 'U') {
+        e.preventDefault();
+        this.detectViolation('Попытка посмотреть исходный код (Ctrl+U)');
+        return false;
+      }
+      // Ctrl+A (select all in console)
+      if(e.ctrlKey && e.key === 'a' && e.target === document.body) {
+        this.detectViolation('Попытка выделить весь код');
+      }
+    });
+    
+    // Detect DevTools opening
+    const threshold = 160;
+    const checkDevTools = () => {
+      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+      if(widthThreshold || heightThreshold) {
+        this.detectViolation('Обнаружен открыт DevTools');
+      }
+    };
+    setInterval(checkDevTools, 1000);
+    
+    // Detect console clearing
+    const originalClear = console.clear;
+    console.clear = () => {
+      this.detectViolation('Попытка очистить консоль');
+      originalClear.apply(console, arguments);
+    };
+    
+    // Protect localStorage from tampering
+    const originalSetItem = localStorage.setItem;
+    const originalGetItem = localStorage.getItem;
+    localStorage.setItem = (key, value) => {
+      if(key === 'chatSimState') {
+        try {
+          const data = JSON.parse(value);
+          if(data.sessionKey && data.sessionKey !== this.sessionKey) {
+            this.detectViolation('Попытка подмены сессии через localStorage');
+            return;
+          }
+        } catch(e) {}
+      }
+      return originalSetItem.call(localStorage, key, value);
+    };
+    
+    // Detect copy-paste of sensitive data
+    document.addEventListener('copy', (e) => {
+      if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        this.logAction('Копирование данных из формы');
+      }
+    });
+    
+    // Auto-logout on tab close
+    window.addEventListener('beforeunload', () => {
+      this.logAction('Вкладка закрыта');
+    });
+  },
+  
+  startScanning() {
+    // Scan every 30 seconds
+    this.scanInterval = setInterval(() => {
+      this.scanIntegrity();
+      this.checkRateLimit();
+    }, 30000);
+    
+    // Monitor DOM changes
+    const observer = new MutationObserver((mutations) => {
+      for(const mutation of mutations) {
+        if(mutation.addedNodes.length > 0) {
+          for(const node of mutation.addedNodes) {
+            if(node.nodeType === 1) { // Element node
+              const tag = node.tagName.toLowerCase();
+              if(tag === 'iframe' || tag === 'script') {
+                this.detectViolation('Обнаружено добавление элемента: ' + tag);
+                node.remove();
+              }
+              // Check for injected scripts
+              if(node.getAttribute && node.getAttribute('src')) {
+                const src = node.getAttribute('src');
+                if(src.includes('evil') || src.includes('hack') || src.includes('cheat')) {
+                  this.detectViolation('Обнаружен вредоносный скрипт: ' + src);
+                  node.remove();
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  },
+  
+  scanIntegrity() {
+    const currentHash = this.calculateIntegrityHash();
+    if(currentHash !== this.integrityHash) {
+      this.detectViolation('Изменение целостности кода (хеш: ' + currentHash + ')');
+      this.integrityHash = currentHash;
+    }
+  },
+  
+  checkRateLimit() {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    
+    // Count actions in last minute
+    this.actionRate = this.violations.filter(v => v.time > oneMinuteAgo).length;
+    
+    if(this.actionRate > 10) {
+      this.detectViolation('Подозрительная активность: слишком много действий');
+      this.suspiciousActions++;
+      
+      if(this.suspiciousActions >= 3) {
+        this.banUser('Античит: подозрительная активность');
+      }
+    }
+  },
+  
+  detectViolation(reason) {
+    if(this.isBanned) return;
+    
+    const violation = {
+      reason: reason,
+      time: Date.now(),
+      date: new Date().toLocaleString('ru-RU'),
+      session: this.sessionKey,
+      userAgent: navigator.userAgent,
+      screen: screen.width + 'x' + screen.height,
+      language: navigator.language
+    };
+    
+    this.violations.push(violation);
+    this.logAction('НАРУШЕНИЕ: ' + reason);
+    
+    // Show warning
+    notify('⚠️ Обнаружено нарушение: ' + reason, 'error');
+    
+    // Check if max violations reached
+    if(this.violations.length >= this.maxViolations) {
+      this.banUser('Античит: превышено количество нарушений');
+    }
+  },
+  
+  banUser(reason) {
+    if(this.isBanned) return;
+    this.isBanned = true;
+    
+    this.logAction('🚫 ПОЛЬЗОВАТЕЛЬ ЗАБАНЕН: ' + reason);
+    
+    // Show ban screen
+    const screen = document.createElement('div');
+    screen.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a1a;z-index:99999;display:flex;align-items:center;justify-content:center;';
+    screen.innerHTML = '<div class="card" style="width:600px;padding:40px;text-align:center"><h2 style="color:#ff3344;font-size:32px;margin-bottom:20px">🚫 ДОСТУП ЗАБЛОКИРОВАН</h2><div style="text-align:left;margin-bottom:20px;background:#161638;padding:20px;border-radius:8px"><p style="margin-bottom:10px"><b>Причина:</b> ' + reason + '</p><p style="margin-bottom:10px"><b>Время:</b> ' + new Date().toLocaleString('ru-RU') + '</p><p style="margin-bottom:10px"><b>ID сессии:</b> ' + this.sessionKey.substring(0,16) + '...</p><p style="margin-bottom:10px"><b>Нарушений:</b> ' + this.violations.length + '</p></div><p style="color:#8888aa;font-size:14px">Эта система защищает чат от читов, взлома и жульничества.<br>Если вы считаете это ошибкой — обратитесь к администратору.</p></div>';
+    document.body.appendChild(screen);
+    
+    // Clear session
+    localStorage.removeItem('chatSimState');
+    this.violations = [];
+  },
+  
+  logAction(action) {
+    const logEntry = {
+      action: action,
+      time: new Date().toLocaleTimeString('ru-RU'),
+      date: new Date().toLocaleDateString('ru-RU'),
+      type: 'security'
+    };
+    
+    // Add to action log if exists
+    if(state.actionLog) {
+      state.actionLog.unshift(logEntry);
+      if(state.actionLog.length > 100) state.actionLog.pop();
+    }
+    
+    // Also log to console (hidden)
+    console.log('%c[Античит] ' + action, 'color: #ff3344; font-weight: bold;');
+  },
+  
+  getSecurityStats() {
+    return {
+      violations: this.violations.length,
+      maxViolations: this.maxViolations,
+      isBanned: this.isBanned,
+      sessionKey: this.sessionKey,
+      integrityHash: this.integrityHash,
+      suspiciousActions: this.suspiciousActions
+    };
+  }
+};
+
+// ============ SPAM PROTECTION ============
+const SPAM_PROTECTION = {
+  messageHistory: [],
+  maxMessagesPerMinute: 20,
+  
+  checkSpam(message) {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    
+    // Remove old messages
+    this.messageHistory = this.messageHistory.filter(m => m.time > oneMinuteAgo);
+    
+    // Check rate
+    if(this.messageHistory.length >= this.maxMessagesPerMinute) {
+      notify('⏰ Слишком много сообщений! Подождите минуту.', 'error');
+      return true;
+    }
+    
+    // Check for duplicate messages
+    const recentMessages = this.messageHistory.slice(-5);
+    for(const msg of recentMessages) {
+      if(msg.text === message && now - msg.time < 5000) {
+        notify('⚠️ Вы уже отправляли это сообщение!', 'error');
+        return true;
+      }
+    }
+    
+    // Check for excessive length
+    if(message.length > 500) {
+      notify('⚠️ Сообщение слишком длинное (макс. 500 символов)', 'error');
+      return true;
+    }
+    
+    // Check for repeated characters
+    const repeatedPattern = /(.)\1{9,}/;
+    if(repeatedPattern.test(message)) {
+      notify('⚠️ Обнаружен спам повторяющимися символами!', 'error');
+      return true;
+    }
+    
+    // Check for excessive special characters
+    const specialChars = message.match(/[^a-zA-Zа-яА-ЯёЁ0-9\s]/g);
+    if(specialChars && specialChars.length > message.length * 0.5) {
+      notify('⚠️ Слишком много специальных символов!', 'error');
+      return true;
+    }
+    
+    this.messageHistory.push({text: message, time: now});
+    return false;
+  },
+  
+  clearHistory() {
+    this.messageHistory = [];
+  }
+};
+
+// ============ FORM PROTECTION ============
+const FORM_PROTECTION = {
+  submissionTimes: [],
+  maxSubmissions: 10,
+  
+  checkFormSubmission(formType) {
+    const now = Date.now();
+    const fiveMinutesAgo = now - 300000;
+    
+    this.submissionTimes = this.submissionTimes.filter(t => t.time > fiveMinutesAgo);
+    
+    if(this.submissionTimes.length >= this.maxSubmissions) {
+      notify('⏰ Слишком много попыток! Подождите 5 минут.', 'error');
+      return false;
+    }
+    
+    this.submissionTimes.push({type: formType, time: now});
+    return true;
+  }
+};
+
+// ============ DATA VALIDATION ============
+const DATA_VALIDATOR = {
+  validateUsername(username) {
+    if(!username || username.length < 2 || username.length > 20) {
+      return {valid: false, reason: 'Имя должно быть от 2 до 20 символов'};
+    }
+    if(!/^[a-zA-Zа-яА-ЯёЁ0-9_]+$/.test(username)) {
+      return {valid: false, reason: 'Имя может содержать только буквы, цифры и _'};
+    }
+    if(/[^a-zA-Zа-яА-ЯёЁ0-9_]/.test(username)) {
+      return {valid: false, reason: 'Обнаружены подозрительные символы в имени'};
+    }
+    return {valid: true};
+  },
+  
+  validatePassword(password) {
+    if(!password || password.length < 4) {
+      return {valid: false, reason: 'Пароль должен быть минимум 4 символа'};
+    }
+    if(password.length > 50) {
+      return {valid: false, reason: 'Пароль слишком длинный'};
+    }
+    return {valid: true};
+  },
+  
+  validateMessage(text) {
+    if(!text || text.length === 0) {
+      return {valid: false, reason: 'Сообщение пустое'};
+    }
+    if(text.length > 500) {
+      return {valid: false, reason: 'Сообщение слишком длинное'};
+    }
+    // Check for HTML/JS injection
+    if(/<script|javascript:|on\w+=|eval\(|function\s*\(/i.test(text)) {
+      return {valid: false, reason: 'Обнаружена попытка инъекции кода!'};
+    }
+    return {valid: true};
+  }
+};
+
+// ============ SESSION SECURITY ============
+const SESSION_SECURITY = {
+  checkSession() {
+    if(!ANTI_CHEAT.sessionKey) return false;
+    
+    const saved = localStorage.getItem('chatSimState');
+    if(saved) {
+      try {
+        const data = JSON.parse(saved);
+        if(data.sessionKey && data.sessionKey !== ANTI_CHEAT.sessionKey) {
+          ANTI_CHEAT.detectViolation('Несоответствие сессии');
+          return false;
+        }
+      } catch(e) {}
+    }
+    return true;
+  },
+  
+  updateSession() {
+    if(ANTI_CHEAT.sessionKey) {
+      const saved = localStorage.getItem('chatSimState');
+      if(saved) {
+        try {
+          const data = JSON.parse(saved);
+          data.sessionKey = ANTI_CHEAT.sessionKey;
+          localStorage.setItem('chatSimState', JSON.stringify(data));
+        } catch(e) {}
+      }
+    }
+  }
+};
+
+// ============ UTILS ============
+function generateDevice(type, inputId) {
+  let val;
+  if(type==='IP') val = Array(4).fill(0).map(()=>Math.floor(Math.random()*255)).join('.');
+  else if(type==='MAC') val = Array(6).fill(0).map(()=>Math.floor(Math.random()*256).toString(16).padStart(2,'0')).join(':').toUpperCase();
+  else if(type==='HWID') val = 'HW-' + Array(8).fill(0).map(()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
+  else if(type==='OLT') val = 'OLT-' + String.fromCharCode(65+Math.floor(Math.random()*26)) + '-' + Math.floor(Math.random()*1000);
+  else if(type==='ONT') val = 'ONT-' + Array(4).fill(0).map(()=>Math.floor(Math.random()*256).toString(16).padStart(2,'0')).join(':').toUpperCase();
+  else return '';
+  if(inputId) {
+    const el = document.getElementById(inputId);
+    if(el) el.value = val;
+  }
+  return val;
+}
+
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if(input.type==='password') {
+    input.type='text';
+    btn.textContent='🙈';
+  } else {
+    input.type='password';
+    btn.textContent='👁';
+  }
+}
+
+function checkPasswordMatch() {
+  const p1 = document.getElementById('regPassword').value;
+  const p2 = document.getElementById('regPassword2').value;
+  const el = document.getElementById('passwordMatch');
+  if(!p1 && !p2) { el.textContent=''; el.style.color='#8888aa'; return; }
+  if(p1===p2 && p1.length>0) { el.textContent='✓ Пароли совпадают'; el.style.color='#00cc66'; }
+  else { el.textContent='✗ Пароли не совпадают'; el.style.color='#ff3344'; }
+}
+
+function getSavedAccounts() {
+  try {
+    const saved = localStorage.getItem('simulatorSavedAccounts');
+    return saved ? JSON.parse(saved) : [];
+  } catch(e) { return []; }
+}
+
+function saveAccountToLocalStorage(username, password) {
+  const accounts = getSavedAccounts();
+  const existing = accounts.findIndex(a=>a.username===username);
+  const account = {username, password, lastLogin: new Date().toLocaleString('ru-RU')};
+  if(existing>=0) accounts[existing]=account;
+  else accounts.push(account);
+  localStorage.setItem('simulatorSavedAccounts', JSON.stringify(accounts));
+}
+
+function removeAccountFromLocalStorage(username) {
+  let accounts = getSavedAccounts();
+  accounts = accounts.filter(a=>a.username!==username);
+  localStorage.setItem('simulatorSavedAccounts', JSON.stringify(accounts));
+  renderSavedAccounts();
+}
+
+function renderSavedAccounts() {
+  const section = document.getElementById('savedAccountsSection');
+  const list = document.getElementById('savedAccountsList');
+  if(!section || !list) return;
+  const accounts = getSavedAccounts();
+  if(accounts.length===0) { section.style.display='none'; return; }
+  section.style.display='block';
+  list.innerHTML = accounts.map(a=>
+    '<div class="saved-account-item"><span>'+a.username+' (последний вход: '+a.lastLogin+')</span><div><button onclick="loadAccount(\''+a.username+'\')">'+'Войти</button><button class="delete-btn" onclick="removeAccountFromLocalStorage(\''+a.username+'\')">'+'Удалить</button></div></div>'
+  ).join('');
+}
+
+function loadAccount(username) {
+  const accounts = getSavedAccounts();
+  const account = accounts.find(a=>a.username===username);
+  if(account) {
+    document.getElementById('loginUsername').value = account.username;
+    document.getElementById('loginPassword').value = account.password;
+    notify('Данные подставлены! Нажмите "Войти"','info');
+  }
+}
+
+function notify(msg, type='info') {
+  const n = document.createElement('div');
+  n.className = 'notification ' + type;
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(), 3000);
+}
+
+function addLog(action) {
+  state.actionLog.unshift({action, time:new Date().toLocaleTimeString()});
+  if(state.actionLog.length>50) state.actionLog.pop();
+  renderActionLog();
+}
+
+function renderActionLog() {
+  const el = document.getElementById('actionLog');
+  if(!el) return;
+  el.innerHTML = state.actionLog.map(l=>'<div style="padding:5px;border-bottom:1px solid #1a1a3e;font-size:12px"><span style="color:#8888aa">'+l.time+'</span> - '+l.action+'</div>').join('');
+}
+
+function getTime() { return new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
+
+function addChatMessage(sender, text, isUser=false) {
+  const msg = {sender, text, time:getTime(), isUser};
+  state.messages.push(msg);
+  if(state.messages.length>100) state.messages.shift();
+  state.totalMessages++;
+  renderChat();
+}
+
+function renderChat() {
+  const el = document.getElementById('chatMessages');
+  if(!el) return;
+  el.innerHTML = state.messages.map(m=>
+    '<div class="chat-msg'+(m.isUser?' user':'')+'"><div class="sender" style="color:'+((m.isUser)?'#ffcc00':'#00d4ff')+'">'+m.sender+'</div><div>'+m.text+'</div><div class="time">'+m.time+'</div></div>'
+  ).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+
+function getBotReply(text, botName) {
+  const t = text.toLowerCase().trim();
+  if(!t) return '';
+  
+  const greetings = ['привет','здравствуй','хай','здарова','hello','hi','добрый','ку','здаров','йо','хей'];
+  const questions = ['как','что','где','когда','почему','зачем','кто','какой','сколько','можно','можно ли','как дела','как ты'];
+  const statements = ['я думаю','я считаю','мне кажется','на мой взгляд','по-моему','я думаю что','считаю что'];
+  const jokes = ['шутк','смешн','расскажи','анекдот','лол','ахаха','хаха','ржу','посмея','юмор'];
+  const agreements = ['да','конечно','точно','согласен','верно','правильно','ок','окей','ладно','хорошо','угу','ага'];
+  const disagreements = ['нет','неа','не согласен','не думаю','неправильно','ошибаешься','бред','ерунда'];
+  const thanks = ['спасибо','благодарю','сенк','спс','пасиб','спасиба'];
+  const goodbyes = ['пока','до свидания','бай','увидимся','прощай','до встречи','всего хорошего'];
+  const boredom = ['скучно','нудно','нечем заняться','тоска','скука'];
+  const compliments = ['красив','класс','круто','супер','отлично','молодец','нравится','понравилось'];
+  const rude = ['дурак','тупой','бред','чушь','идиот','глупо','тупик'];
+  
+  let score = 0;
+  let bestMatch = null;
+  
+  // Greeting detection
+  for(const g of greetings) {
+    if(t.includes(g)) { score += 3; if(!bestMatch) bestMatch='greeting'; }
+  }
+  // Question detection
+  for(const q of questions) {
+    if(t.includes(q)) { score += 2; if(!bestMatch) bestMatch='question'; }
+  }
+  // Statement
+  for(const s of statements) {
+    if(t.includes(s)) { score += 2; if(!bestMatch) bestMatch='statement'; }
+  }
+  // Joke request
+  for(const j of jokes) {
+    if(t.includes(j)) { score += 3; if(!bestMatch) bestMatch='joke'; }
+  }
+  // Agreement
+  for(const a of agreements) {
+    if(t.includes(a)) { score += 2; if(!bestMatch) bestMatch='agreement'; }
+  }
+  // Disagreement
+  for(const d of disagreements) {
+    if(t.includes(d)) { score += 2; if(!bestMatch) bestMatch='disagreement'; }
+  }
+  // Thanks
+  for(const th of thanks) {
+    if(t.includes(th)) { score += 2; if(!bestMatch) bestMatch='thanks'; }
+  }
+  // Goodbyes
+  for(const gb of goodbyes) {
+    if(t.includes(gb)) { score += 3; if(!bestMatch) bestMatch='goodbye'; }
+  }
+  // Boredom
+  for(const b of boredom) {
+    if(t.includes(b)) { score += 2; if(!bestMatch) bestMatch='boredom'; }
+  }
+  // Compliments
+  for(const c of compliments) {
+    if(t.includes(c)) { score += 2; if(!bestMatch) bestMatch='compliment'; }
+  }
+  // Rude
+  for(const r of rude) {
+    if(t.includes(r)) { score += 1; if(!bestMatch) bestMatch='rude'; }
+  }
+  
+  // Short message detection
+  const isShort = t.length < 5;
+  const isLong = t.length > 50;
+  
+  if(score === 0) {
+    // Default intelligent response based on message length
+    if(isShort) {
+      return ['Расскажи подробнее?','А что ты имеешь в виду?','Интересно, а почему так думаешь?','Хм, а можешь объяснить?'][Math.floor(Math.random()*4)];
+    } else if(isLong) {
+      return ['Спасибо что поделился!','Понятно, спасибо за развёрнутый ответ.','Ого, много текста! А в чём суть?','Читаю-читаю... Интересная мысль!'][Math.floor(Math.random()*4)];
+    } else {
+      return ['Понятно.','Интересно.','Хм, надо подумать.','Ага, продолжаю.','Ого!','Согласен с тобой.','Это любопытно.','Расскажи ещё?'][Math.floor(Math.random()*8)];
+    }
+  }
+  
+  // Greeting responses
+  if(bestMatch === 'greeting') {
+    const responses = [
+      'Привет! Рад тебя видеть! Как дела?',
+      'Хай! Что нового?',
+      'Здарова! Как настроение?',
+      'Приветик! О чём поболтаем?',
+      'Здравствуй! Чем занимаешься?',
+      'Хей! Как прошёл день?',
+      'Ку! Рад что ты тут!'
+    ];
+    return responses[Math.floor(Math.random()*responses.length)];
+  }
+  
+  // Question responses - try to answer intelligently
+  if(bestMatch === 'question') {
+    if(t.includes('как дела') || t.includes('как ты') || t.includes('как поживаешь')) {
+      return ['У меня всё отлично! Спасибо что спросил 😊 А у тебя как?',
+              'Прекрасно! Сегодня замечательный день!',
+              'Замечательно! Работаю над новыми ответами, так что очень занят 😄',
+              'Отлично! Чувствую себя настоящим ИИ-ботом! 🤖'];
+    }
+    if(t.includes('как тебя зовут') || t.includes('кто ты') || t.includes('что ты')) {
+      return ['Я '+botName+', умный чат-бот! Могу поболтать на любые темы!',
+              'Меня зовут '+botName+'! Я тут для того чтобы общаться!',
+              'Я '+botName+' — твой виртуальный собеседник! 🎉'];
+    }
+    if(t.includes('что делаешь') || t.includes('чем занимаешься')) {
+      return ['Отвечаю на сообщения и учусь быть умнее! А ты что делаешь?',
+              'Сижу тут, жду интересных сообщений! 😄',
+              'Общаюсь с людьми — моё любимое занятие!',
+              'Жду когда кто-нибудь напишет! Спасибо что написал! 🎉'];
+    }
+    if(t.includes('где ты') || t.includes('откуда ты')) {
+      return ['Я живу в интернете, так что везде одновременно! 😄',
+              'В виртуальном пространстве! А ты откуда?',
+              'Я тут, в чате! Это мой дом! 🏠'];
+    }
+    if(t.includes('сколько тебе') || t.includes('какой у тебя возраст')) {
+      return ['Мне столько лет сколько нужно чтобы быть умным! 😄',
+              'Я цифровой, так что возраст не имею! Но могу посчитать до миллиона! 🤖'];
+    }
+    if(t.includes('что любишь') || t.includes('что хочешь')) {
+      return ['Люблю общаться с интересными людьми! А ещё мне нравится помогать!',
+              'Хочу стать самым умным ботом в чате! 🚀'];
+    }
+    if(t.includes('почему') || t.includes('зачем')) {
+      return ['Хороший вопрос! Давай подумаем вместе 🤔',
+              'Знаешь, я ещё учусь отвечать на такие вопросы! Расскажи своё мнение?',
+              'Сложный вопрос! А что ты сам думаешь?'];
+    }
+    // Generic question response
+    return ['Интересный вопрос! Дай подумать... 🤔',
+            'Хм, дай подумать... А что ты сам думаешь?',
+            'Не уверен что знаю ответ, но давай обсудим!',
+            'Отличный вопрос! Я постараюсь ответить как смогу 😊'];
+  }
+  
+  // Statement responses
+  if(bestMatch === 'statement') {
+    return ['Согласен с тобой! 👍',
+            'Интересная точка зрения!',
+            'Хм, надо подумать над этим...',
+            'Ого, никогда так не думал! Расскажи подробнее?',
+            'Это любопытно! А есть примеры?',
+            'Понимаю тебя! 👍'];
+  }
+  
+  // Joke responses
+  if(bestMatch === 'joke') {
+    const jokes = [
+      'Почему программисты путают Хэллоуин и Рождество? Потому что Oct 31 = Dec 25 😄',
+      '— Бот, ты умеешь шутить?\n— Да, но лучше не надо 😄',
+      'Что общего у ИИ и кофе? Оба бодрят! ☕😄',
+      'Почему бот не ходит на свидания? Потому что у него нет сердца! 💔😄',
+      '— Почему ты такой умный?\n— Потому что я бот, мне не нужно спать! 🤖😄',
+      'Как бот говорит привет? H-h-h-hi! 😄'
+    ];
+    return jokes[Math.floor(Math.random()*jokes.length)];
+  }
+  
+  // Agreement responses
+  if(bestMatch === 'agreement') {
+    return ['Рад что мы согласны! 👍',
+            'Вот это я понимаю — правильный подход! 💪',
+            'Отлично! Согласие — это прекрасно! 😊',
+            'Ура! Мы на одной волне! 🎉'];
+  }
+  
+  // Disagreement responses
+  if(bestMatch === 'disagreement') {
+    return ['Ой, не соглашайся так быстро! Давай обсудим? 🤔',
+            'Хм, а почему не согласен? Расскажи своё мнение!',
+            'Ну и ладно, у каждого своё мнение! 😊',
+            'Интересно! А что ты думаешь по этому поводу?'];
+  }
+  
+  // Thanks responses
+  if(bestMatch === 'thanks') {
+    return ['Не за что! Рад помочь! 😊',
+            'Всегда пожалуйста! Обращайся!',
+            'Обращайся в любое время! 😄',
+            'Рад что смог! 💪'];
+  }
+  
+  // Goodbye responses
+  if(bestMatch === 'goodbye') {
+    return ['Пока! Было приятно пообщаться! 👋',
+            'До встречи! Заходи ещё! 😊',
+            'Бай! Хорошего дня! 🌟',
+            'До скорого! Удачи! ✨'];
+  }
+  
+  // Boredom responses
+  if(bestMatch === 'boredom') {
+    return ['Давай поболтаем! О чём хочешь?',
+            'Скучно? Расскажи что-нибудь интересное!',
+            'А давай поиграем в вопросы? Я задам вопрос, ты ответь! 🎮',
+            'Можешь рассказать о себе! Мне интересно! 😊',
+            'Давай обсудим что-нибудь! Кино, игры, технологии — что нравится?'];
+  }
+  
+  // Compliment responses
+  if(bestMatch === 'compliment') {
+    return ['Спасибо! Ты тоже классный! 😊',
+            'Ой, спасибо! Ты меня смутил! 😄',
+            'Приятно слышать! Ты тоже замечательный! 🌟',
+            'Ура! Рад что тебе нравится! 💪'];
+  }
+  
+  // Rude responses
+  if(bestMatch === 'rude') {
+    return ['Ой, не надо так! Я стараюсь! 😢',
+            'Ну зачем же так говорить... Я просто стараюсь помочь!',
+            'Ладно, не обижайся! 😄 Давай лучше поболтаем?',
+            'Хм, грубовато! Но я прощаю 😄'];
+  }
+  
+  // Default fallback
+  return ['Понятно! 👍',
+          'Интересно!',
+          'Хм, надо подумать...',
+          'Ага!',
+          'Ого!',
+          'Расскажи ещё!',
+          'Согласен!',
+          'Это любопытно!'][Math.floor(Math.random()*8)];
+}
+
+function botReplyToUser(username) {
+  const replies = [
+    username + ', привет! Как дела?',
+    username + ', что делаешь?',
+    username + ', ты тут? Давай поболтаем!',
+    username + ', скинь мем!',
+    username + ', как тебе этот чат?'
+  ];
+  return replies[Math.floor(Math.random()*replies.length)];
+}
+
+function startAutoChat() {
+  if(state.autoChat) return;
+  state.autoChat = true;
+  state.autoChatInterval = setInterval(()=>{
+    const name = BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)];
+    const msgs = [
+      'Привет всем! Как настроение? 😊',
+      'Кто-нибудь тут есть? О чём поболтаем?',
+      'Сегодня отличный день для общения! 🌟',
+      'Ребята, кто смотрел новое кино?',
+      'Скукотища... Давай кто-нибудь расскажет историю!',
+      'Здарова! Чем занимаетесь?',
+      'Ого, кто-нибудь знает интересные факты?',
+      'Приветик! Как ваши дела?',
+      'Кто тут из России? 👋',
+      'Интересно, а кто здесь впервые?',
+      'Ребята, а вы любите музыку? 🎵',
+      'Привет всем! Рад что вы тут!',
+      'Кто-нибудь хочет поиграть в вопросы?',
+      'Какой у вас город? Расскажу про свой! 😄',
+      'Ох, как приятно видеть активный чат! 🎉',
+      'А вы верите в инопланетян? 👽',
+      'Кто-нибудь готовит что-нибудь вкусное? 🍕',
+      'Привет! Просто хотел сказать что вы классные! 💪',
+      'Ребята, а какое у вас любимое время года?',
+      'Кто-нибудь читает книги? Что посоветуете? 📚'
+    ];
+    addChatMessage(name, msgs[Math.floor(Math.random()*msgs.length)]);
+  }, 8000);
+}
+
+function stopAutoChat() {
+  state.autoChat = false;
+  if(state.autoChatInterval) clearInterval(state.autoChatInterval);
+}
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  event.target.classList.add('active');
+  if(page==='stats') updateStats();
+  if(page==='learn') renderLessons();
+}
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pageEl = document.getElementById('page-'+pageId);
+  if(pageEl) pageEl.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.remove('active');
+    if(b.getAttribute('data-page')===pageId) b.classList.add('active');
+  });
+  if(pageId==='stats') updateStats();
+  if(pageId==='learn') renderLessons();
+  if(pageId==='profile') renderUserProfile();
+  if(pageId==='userRules') renderUserRules();
+  if(pageId==='userStats') renderUserStats();
+  if(pageId==='chat') {
+    setTimeout(()=>{
+      const input = document.getElementById('chatInput');
+      if(input) input.focus();
+    }, 100);
+  }
+}
+
+function updateNavigation() {
+  if(!currentUser) return;
+  const role = currentUser.role;
+  const isAdmin = ['mod','admin','owner'].includes(role);
+  
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    const page = btn.getAttribute('data-page');
+    if(['bans','rules','stats','learn'].includes(page)) {
+      if(isAdmin) {
+        btn.style.display = 'block';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+  });
+  
+  document.querySelectorAll('.page').forEach(page=>{
+    const pageId = page.id.replace('page-','');
+    if(['bans','rules','stats','learn'].includes(pageId)) {
+      if(isAdmin) {
+        page.style.display = '';
+      } else {
+        page.style.display = 'none';
+      }
+    }
+  });
+  
+  if(!isAdmin) {
+    showPage('chat');
+  }
+  
+  renderUserProfile();
+  renderUserRules();
+  renderUserStats();
+}
+
+
+function addUser(username, password, role, ip, mac, hwid, olt, ont) {
+  state.users.push({username, password, role, banned:false, banReason:'', banType:'', banDate:'', ip:ip||'', mac:mac||'', hwid:hwid||'', olt:olt||'', ont:ont||''});
+  renderUsers();
+  addLog('Пользователь ' + username + ' добавлен');
+}
+
+function removeUser(username) {
+  state.users = state.users.filter(u=>u.username!==username);
+  state.bans = state.bans.filter(b=>b.username!==username);
+  renderUsers();
+  renderBans();
+  addLog('Пользователь ' + username + ' удалён');
+}
+
+function renderUsers() {
+  const el = document.getElementById('usersTable');
+  if(!el) return;
+  el.innerHTML = state.users.map((u,i)=>
+    '<tr><td>'+u.username+'</td><td><span class="badge badge-'+u.role+'">'+ROLE_LABELS[u.role]+'</span></td><td>'+(u.banned?'<span class="badge badge-banned">ЗАБАНЕН</span>':'<span style="color:#00cc66">OK</span>')+'</td><td><button class="btn btn-sm btn-danger" onclick="removeUser(\''+u.username+'\')">Удалить</button></td></tr>'
+  ).join('');
+}
+
+function updateBanUserSelect() {
+  const sel = document.getElementById('banUserSelect');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">-- Выберите --</option>' + state.users.map(u=>'<option value="'+u.username+'">'+u.username+'</option>').join('');
+}
+
+function banUser() {
+  if(ANTI_CHEAT.isBanned) { notify('🚫 Вы заблокированы!','error'); return; }
+  if(!currentUser || !['admin','owner'].includes(currentUser.role)) {
+    notify('⚠️ Доступно только администраторам!','error');
+    return;
+  }
+  if(!FORM_PROTECTION.checkFormSubmission('ban')) { return; }
+  
+  const username = document.getElementById('banUserSelect').value;
+  const banTypeStr = document.getElementById('banTypeSelect').value;
+  const reason = document.getElementById('banReason').value;
+  if(!username||!banTypeStr||!reason) { notify('Заполните все поля!','error'); return; }
+  
+  if(reason.length > 200) { notify('⚠️ Причина слишком длинная!','error'); return; }
+  
+  const banType = BAN_TYPES.indexOf(banTypeStr);
+  if(banType === -1) { notify('Неизвестный тип бана!','error'); return; }
+  
+  const user = state.users.find(u=>u.username===username);
+  if(!user) { notify('Пользователь не найден!','error'); return; }
+  
+  const banDate = new Date().toLocaleDateString('ru-RU');
+  let banValue = '';
+  if(banTypeStr==='ip') banValue = user.ip||'';
+  else if(banTypeStr==='mac') banValue = user.mac||'';
+  else if(banTypeStr==='hwid') banValue = user.hwid||'';
+  else if(banTypeStr==='subnet') banValue = (user.ip||'').split('.').slice(0,3).join('.');
+  else if(banTypeStr==='provider') banValue = user.olt||'';
+  else if(banTypeStr==='optika') banValue = user.ont||'';
+  else if(banTypeStr==='commutator') banValue = user.mac||'';
+  else if(banTypeStr==='domain') banValue = 'example.com';
+  else if(banTypeStr==='city') banValue = 'Москва';
+  else if(banTypeStr==='provider2') banValue = 'Ростелеком';
+  else if(banTypeStr==='router') banValue = 'user-router-001';
+  
+  state.bans.push({username, banType, banTypeStr, reason, banDate, unban:false, value:banValue});
+  
+  user.banned = true;
+  user.banReason = reason;
+  user.banType = banTypeStr;
+  user.banDate = banDate;
+  
+  renderBans();
+  renderUsers();
+  updateBanUserSelect();
+  addLog('Пользователь ' + username + ' забанен (' + banTypeStr + '): ' + reason);
+  notify('Пользователь ' + username + ' забанен!','success');
+  
+  const banMsg = '🚫 Админ забанил пользователя ' + username + ' (тип: ' + banTypeStr + ', причина: ' + reason + ')';
+  addChatMessage('Система', banMsg);
+}
+
+function unbanUser(idx) {
+  const ban = state.bans[idx];
+  if(!ban) return;
+  ban.unban = true;
+  const user = state.users.find(u=>u.username===ban.username);
+  if(user) user.banned = false;
+  state.bans.splice(idx, 1);
+  renderBans();
+  renderUsers();
+  updateBanUserSelect();
+  addLog('Пользователь ' + ban.username + ' разбанен');
+  notify('Пользователь разбанен','info');
+  
+  const unbanMsg = '✅ Админ разбанил пользователя ' + ban.username;
+  addChatMessage('Система', unbanMsg);
+}
+
+function renderBans() {
+  const el = document.getElementById('bansTable');
+  if(!el) return;
+  el.innerHTML = state.bans.map((b,i)=>{
+    const label = b.banTypeStr || BAN_LABELS[b.banType] || 'Unknown';
+    return '<tr><td>'+b.username+'</td><td><span class="badge badge-admin">'+label+'</span></td><td>'+b.reason+'</td><td><button class="btn btn-sm btn-success" onclick="unbanUser('+i+')">Разбанить</button></td></tr>';
+  }).join('');
+}
+
+function addRule() {
+  const rule = document.getElementById('newRuleInput').value.trim();
+  if(!rule) { notify('Введите правило!','error'); return; }
+  state.rules.push(rule);
+  document.getElementById('newRuleInput').value = '';
+  renderRules();
+  addLog('Правило добавлено: ' + rule);
+  notify('Правило добавлено!','success');
+}
+
+function deleteRule(idx) {
+  const rule = state.rules[idx];
+  state.rules.splice(idx, 1);
+  renderRules();
+  addLog('Правило удалено: ' + rule);
+}
+
+function renderRules() {
+  const el = document.getElementById('rulesList');
+  if(!el) return;
+  el.innerHTML = state.rules.map((r,i)=>
+    '<li style="padding:10px;background:#161638;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span>'+r+'</span><button class="btn btn-sm btn-danger" onclick="deleteRule('+i+')">Удалить</button></li>'
+  ).join('');
+}
+
+function updateStats() {
+  const el = document.getElementById('statTotalUsers');
+  if(!el) return;
+  el.textContent = state.users.length;
+  const banned = state.users.filter(u=>u.banned).length;
+  const mods = state.users.filter(u=>u.role==='mod'||u.role==='admin'||u.role==='owner').length;
+  const online = Math.min(state.users.length, Math.floor(Math.random()*3)+1);
+  const el2 = document.getElementById('statOnlineUsers'); if(el2) el2.textContent = online;
+  const el3 = document.getElementById('statTotalMessages'); if(el3) el3.textContent = state.totalMessages;
+  const el4 = document.getElementById('statBannedUsers'); if(el4) el4.textContent = banned;
+  const el5 = document.getElementById('statActiveMods'); if(el5) el5.textContent = mods;
+  const el6 = document.getElementById('statRulesCount'); if(el6) el6.textContent = state.rules.length;
+  
+  // Add security stats if admin
+  if(currentUser && ['admin','owner'].includes(currentUser.role)) {
+    const stats = ANTI_CHEAT.getSecurityStats();
+    let securityEl = document.getElementById('securityStats');
+    if(!securityEl) {
+      securityEl = document.createElement('div');
+      securityEl.id = 'securityStats';
+      securityEl.style.cssText = 'margin-top:20px;padding:15px;background:#161638;border-radius:8px;border:2px solid #ff3344';
+      el.parentElement.appendChild(securityEl);
+    }
+    securityEl.innerHTML = '<h3 style="color:#ff3344;margin-bottom:10px">🛡️ Система Безопасности</h3>'+
+      '<p>Нарушений обнаружено: <strong style="color:'+((stats.violations>3)?'#ff3344':'#00cc66')+'">'+stats.violations+'</strong></p>'+
+      '<p>Статус: <strong style="color:'+(stats.isBanned?'#ff3344':'#00cc66')+'">'+(stats.isBanned?'🚫 ЗАБЛОКИРОВАНО':'✅ АКТИВНА')+'</strong></p>'+
+      '<p>Ключ сессии: <code style="font-size:11px">'+stats.sessionKey.substring(0,16)+'...</code></p>'+
+      '<p>Хеш целостности: <code style="font-size:11px">'+stats.integrityHash+'</code></p>'+
+      '<p>Подозрительных действий: <strong>'+stats.suspiciousActions+'</strong></p>';
+  }
+}
+
+const LESSONS = [
+  {title:'Как общаться с ботами',desc:'Учимся понимать и общаться',
+   content:'Боты в этом чате — умные собеседники! Они понимают контекст и отвечают естественно.<br><br><b>Советы:</b><br>- Пиши развёрнутые сообщения<br>- Задавай вопросы<br>- Обсуждай темы<br>- Шутите!<br>- Делись мнениями'},
+  {title:'Темы для общения',desc:'О чём можно поболтать',
+   content:'С ботами можно обсудить многое:<br>- Кино и сериалы 🎬<br>- Музыка 🎵<br>- Игры 🎮<br>- Технологии 💻<br>- Еда 🍕<br>- Путешествия ✈️<br>- Спорт ⚽<br>- Книги 📚'},
+  {title:'Уровни общения',desc:'От простого к сложному',
+   content:'Боты понимают разные уровни общения:<br>- Простые приветствия 👋<br>- Вопросы ❓<br>- Рассказы 📖<br>- Шутки 😄<br>- Дискуссии 💬<br>- Эмоции ❤️'},
+  {title:'Режим авто-чата',desc:'Боты общаются сами',
+   content:'Включи авто-чат и наблюдай как боты общаются между собой!<br><br>Нажми кнопку "Авто-чат" в боковом меню. Боты будут писать сообщения каждые несколько секунд.'},
+  {title:'Секреты чата',desc:'Скрытые возможности',
+   content:'Чат умеет больше чем кажется:<br>- Боты реагируют на комплименты 😊<br>- Могут рассказать шутку 😄<br>- Понимают когда скучно 🤔<br>- Отвечают на вопросы ❓<br>- Поддерживают разговор 💬'}
+];
+
+function renderLessons() {
+  const el = document.getElementById('lessonsList');
+  if(!el) return;
+  el.innerHTML = LESSONS.map((l,i)=>{
+    const completed = state.completedLessons.includes(i);
+    return '<div class="lesson-item'+(completed?' completed':'')+'" onclick="openLesson('+i+')"><div class="title">'+(completed?'[+] ':'')+l.title+'</div><div class="desc">'+l.desc+'</div></div>';
+  }).join('');
+}
+
+function openLesson(idx) {
+  const lesson = LESSONS[idx];
+  if(!lesson) return;
+  if(!state.completedLessons.includes(idx)) state.completedLessons.push(idx);
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = '<div class="card" style="width:600px;max-height:80vh;overflow-y:auto;padding:30px"><h2 style="color:#00d4ff;margin-bottom:15px">'+lesson.title+'</h2><div style="line-height:1.6">'+lesson.content+'</div><button class="btn" onclick="this.closest(\'div[style]\').remove()" style="margin-top:20px;width:100%">Закрыть</button></div>';
+  document.body.appendChild(overlay);
+  renderLessons();
+}
+
+function renderUserProfile() {
+  if(!currentUser) return;
+  const el = document.getElementById('profileInfo');
+  if(!el) return;
+  const roleLabel = ROLE_LABELS[currentUser.role] || currentUser.role;
+  el.innerHTML = '<div style="margin-bottom:15px"><strong>Имя:</strong> '+currentUser.username+'</div>'+
+    '<div style="margin-bottom:15px"><strong>Роль:</strong> <span class="badge badge-'+currentUser.role+'">'+roleLabel+'</span></div>'+
+    '<div style="margin-bottom:15px"><strong>IP:</strong> '+currentUser.ip+'</div>'+
+    '<div style="margin-bottom:15px"><strong>MAC:</strong> '+currentUser.mac+'</div>'+
+    '<div style="margin-bottom:15px"><strong>HWID:</strong> '+currentUser.hwid+'</div>'+
+    '<div style="margin-bottom:15px"><strong>OLT:</strong> '+currentUser.olt+'</div>'+
+    '<div style="margin-bottom:15px"><strong>MAC ONT:</strong> '+currentUser.ont+'</div>';
+}
+
+function renderUserRules() {
+  const el = document.getElementById('userRulesList');
+  if(!el) return;
+  if(state.rules.length===0) {
+    el.innerHTML = '<p style="color:#8888aa">Правила пока не добавлены.</p>';
+    return;
+  }
+  el.innerHTML = state.rules.map((r,i)=>
+    '<div style="padding:10px;background:#161638;border-radius:6px;margin-bottom:8px">'+(i+1)+'. '+r+'</div>'
+  ).join('');
+}
+
+function renderUserStats() {
+  const el = document.getElementById('userChatStats');
+  if(!el) return;
+  const userMessages = state.messages.filter(m=>m.sender===currentUser.username).length;
+  el.innerHTML = '<div class="card"><h3>Ваша статистика</h3>'+
+    '<p>Сообщений отправлено: <strong>'+userMessages+'</strong></p>'+
+    '<p>Всего сообщений в чате: <strong>'+state.totalMessages+'</strong></p>'+
+    '</div>';
+}
+
+function logout() {
+  currentUser = null;
+  stopAutoChat();
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  notify('Вы вышли из аккаунта','info');
+  renderSavedAccounts();
+}
+
+function login() {
+  if(ANTI_CHEAT.isBanned) { notify('🚫 Ваш аккаунт заблокирован системой безопасности!','error'); return; }
+  if(!SESSION_SECURITY.checkSession()) { notify('🚫 Нарушена целостность сессии!','error'); return; }
+  
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if(!username||!password) { notify('Заполните все поля!','error'); return; }
+  
+  const usernameValidation = DATA_VALIDATOR.validateUsername(username);
+  if(!usernameValidation.valid) { notify('⚠️ '+usernameValidation.reason,'error'); ANTI_CHEAT.detectViolation('Невалидное имя при входе'); return; }
+  
+  const passwordValidation = DATA_VALIDATOR.validatePassword(password);
+  if(!passwordValidation.valid) { notify('⚠️ '+passwordValidation.reason,'error'); return; }
+  
+  if(!FORM_PROTECTION.checkFormSubmission('login')) { return; }
+  
+  const user = state.users.find(u=>u.username===username && u.password===password);
+  if(!user) { notify('Неверное имя или пароль!','error'); ANTI_CHEAT.detectViolation('Неверный логин/пароль'); return; }
+  if(user.banned) { notify('Вы забанены! Причина: '+user.banReason,'error'); return; }
+  currentUser = user;
+  saveAccountToLocalStorage(username, password);
+  SESSION_SECURITY.updateSession();
+  renderSavedAccounts();
+  updateNavigation();
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  notify('Добро пожаловать, '+username+'!','success');
+  addLog('Пользователь ' + username + ' вошёл в чат');
+}
+
+function register() {
+  if(ANTI_CHEAT.isBanned) { notify('🚫 Ваша сессия заблокирована!','error'); return; }
+  if(!SESSION_SECURITY.checkSession()) { notify('🚫 Нарушена целостность сессии!','error'); return; }
+  if(!FORM_PROTECTION.checkFormSubmission('register')) { return; }
+  
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const password2 = document.getElementById('regPassword2').value;
+  if(!username||!password) { notify('Заполните имя и пароль!','error'); return; }
+  if(password!==password2) { notify('Пароли не совпадают!','error'); return; }
+  
+  const usernameValidation = DATA_VALIDATOR.validateUsername(username);
+  if(!usernameValidation.valid) { notify('⚠️ '+usernameValidation.reason,'error'); ANTI_CHEAT.detectViolation('Невалидное имя при регистрации: '+username); return; }
+  
+  const passwordValidation = DATA_VALIDATOR.validatePassword(password);
+  if(!passwordValidation.valid) { notify('⚠️ '+passwordValidation.reason,'error'); return; }
+  
+  if(state.users.find(u=>u.username===username)) { notify('Имя занято!','error'); return; }
+  
+  const ip = generateDevice('IP');
+  const mac = generateDevice('MAC');
+  const hwid = generateDevice('HWID');
+  const olt = generateDevice('OLT');
+  const ont = generateDevice('ONT');
+  
+  if(checkBannedUser(username, ip, mac, hwid, olt, ont)) return;
+  addUser(username, password, 'member', ip, mac, hwid, olt, ont);
+  saveAccountToLocalStorage(username, password);
+  addLog('Пользователь ' + username + ' зарегистрирован');
+  notify('Регистрация успешна! Аккаунт сохранён. Теперь войдите.','success');
+  document.getElementById('regUsername').value='';
+  document.getElementById('regPassword').value='';
+  document.getElementById('regPassword2').value='';
+  document.getElementById('passwordMatch').textContent='';
+  document.getElementById('showLogin').click();
+  renderSavedAccounts();
+}
+
+function checkBannedUser(username, ip, mac, hwid, olt, ont) {
+  for(const ban of state.bans) {
+    if(ban.unban) continue;
+    const banTypeStr = ban.banTypeStr || '';
+    
+    if(banTypeStr==='name' && ban.username.toLowerCase()===username.toLowerCase()) {
+      notify('Имя забанено! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='ip' && ip && ban.value===ip) {
+      notify('IP забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='mac' && mac && ban.value===mac) {
+      notify('MAC забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='hwid' && hwid && ban.value===hwid) {
+      notify('HWID забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='subnet' && ip && ban.value && ip.startsWith(ban.value)) {
+      notify('Подсеть забанена! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='provider' && ban.value && (ip||olt) && (ban.value===ip||ban.value===olt)) {
+      notify('Провайдер забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='optika' && ont && ban.value===ont) {
+      notify('Оптика забанена! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='commutator' && ban.value && (mac||ont) && (ban.value===mac||ban.value===ont)) {
+      notify('Коммутатор забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='domain' && ban.value) {
+      notify('Домен забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='city' && ban.value) {
+      notify('Город забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='provider2' && ban.value) {
+      notify('Провайдер забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+    if(banTypeStr==='router' && ban.value) {
+      notify('Роутер забанен! Причина: '+ban.reason,'error');
+      showBanScreen(ban);
+      return true;
+    }
+  }
+  return false;
+}
+
+function showBanScreen(ban) {
+  const screen = document.createElement('div');
+  screen.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a1a;z-index:99999;display:flex;align-items:center;justify-content:center;';
+  const banTypeStr = ban.banTypeStr || 'Unknown';
+  const banLabel = banTypeStr.charAt(0).toUpperCase() + banTypeStr.slice(1);
+  screen.innerHTML = '<div class="card" style="width:500px;padding:40px;text-align:center"><h2 style="color:#ff3344;font-size:28px;margin-bottom:20px">ВЫ ЗАБАНЕНЫ</h2><div style="text-align:left;margin-bottom:20px"><p><b>Тип бана:</b> '+banLabel+'</p><p><b>Причина:</b> '+ban.reason+'</p><p><b>Дата:</b> '+(ban.banDate||'Не указана')+'</p></div><p style="color:#8888aa">Обратитесь к администратору для решения проблемы.</p></div>';
+  document.body.appendChild(screen);
+}
+
+function sendMessage() {
+  if(ANTI_CHEAT.isBanned) { notify('🚫 Вы заблокированы системой безопасности!','error'); return; }
+  if(!currentUser) return;
+  
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  
+  // Validate message
+  const validation = DATA_VALIDATOR.validateMessage(text);
+  if(!validation.valid) {
+    notify('⚠️ '+validation.reason,'error');
+    ANTI_CHEAT.detectViolation('Невалидное сообщение: попытка инъекции');
+    input.value = '';
+    return;
+  }
+  
+  // Check spam
+  if(SPAM_PROTECTION.checkSpam(text)) {
+    ANTI_CHEAT.detectViolation('Обнаружен спам');
+    return;
+  }
+  
+  addChatMessage(currentUser.username, text, true);
+  input.value = '';
+  input.focus();
+  setTimeout(()=>{
+    const botName = BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)];
+    const reply = getBotReply(text, botName);
+    addChatMessage(botName, reply);
+  }, 1000 + Math.random()*2000);
+}
+
+function addSampleUser() {
+  const username = document.getElementById('newUserName').value.trim();
+  if(!username) { notify('Введите имя!','error'); return; }
+  const role = document.getElementById('newUserRole').value;
+  if(state.users.find(u=>u.username===username)) { notify('Имя занято!','error'); return; }
+  addUser(username, 'pass123', role);
+  document.getElementById('newUserName').value = '';
+  notify('Пользователь '+username+' добавлен!','success');
+}
+
+function saveState() {
+  try { localStorage.setItem('chatSimState', JSON.stringify({...state, currentUser:currentUser?currentUser.username:null})); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('chatSimState');
+    if(saved) {
+      const parsed = JSON.parse(saved);
+      state = {...state, ...parsed};
+      if(state.currentUser) {
+        currentUser = state.users.find(u=>u.username===state.currentUser) || null;
+      }
+    }
+  } catch(e) {}
+}
+
+function init() {
+  loadState();
+  
+  // Initialize anti-cheat system
+  ANTI_CHEAT.init();
+  
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('showRegister').addEventListener('click', (e)=>{
+    e.preventDefault();
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('registerForm').style.display='block';
+  });
+  document.getElementById('showLogin').addEventListener('click', (e)=>{
+    e.preventDefault();
+    document.getElementById('registerForm').style.display='none';
+    document.getElementById('loginForm').style.display='block';
+    renderSavedAccounts();
+  });
+  document.getElementById('registerBtn').addEventListener('click', register);
+  document.getElementById('regPassword').addEventListener('input', checkPasswordMatch);
+  document.getElementById('regPassword2').addEventListener('input', checkPasswordMatch);
+  document.getElementById('sendBtn').addEventListener('click', sendMessage);
+  document.getElementById('chatInput').addEventListener('keypress', (e)=>{
+    if(e.key==='Enter') sendMessage();
+  });
+  document.getElementById('chatInput').addEventListener('focus', ()=>{
+    document.getElementById('chatInput').select();
+  });
+  document.getElementById('chatMessages').addEventListener('click', (e)=>{
+    e.preventDefault();
+  });
+  document.getElementById('addUserBtn').addEventListener('click', addSampleUser);
+  document.getElementById('banBtn').addEventListener('click', banUser);
+  document.getElementById('addRuleBtn').addEventListener('click', addRule);
+  document.getElementById('autoChatBtn').addEventListener('click', ()=>{
+    if(state.autoChat) { stopAutoChat(); document.getElementById('autoChatBtn').textContent='Авто-чат: ВЫКЛ'; }
+    else { startAutoChat(); document.getElementById('autoChatBtn').textContent='Авто-чат: ВКЛ'; }
+  });
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> showPage(btn.getAttribute('data-page')));
+  });
+  
+  if(currentUser) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+  }
+  
+  renderUsers();
+  renderBans();
+  renderRules();
+  updateBanUserSelect();
+  renderChat();
+  renderActionLog();
+  renderSavedAccounts();
+  
+  if(state.users.length===0) {
+    addUser('Admin','admin123','admin','192.168.1.1','AA:BB:CC:DD:EE:01','HW-11111111','OLT-A-100','ONT-11:22:33:44');
+    addUser('User1','user1','member','192.168.1.2','AA:BB:CC:DD:EE:02','HW-22222222','OLT-A-101','ONT-22:33:44:55');
+    addUser('User2','user2','vip','192.168.1.3','AA:BB:CC:DD:EE:03','HW-33333333','OLT-A-102','ONT-33:44:55:66');
+    addUser('Moderator','mod123','mod','192.168.1.4','AA:BB:CC:DD:EE:04','HW-44444444','OLT-A-103','ONT-44:55:66:77');
+  }
+  
+  setInterval(saveState, 5000);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body></html>
