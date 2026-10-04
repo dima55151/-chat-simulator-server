@@ -14,14 +14,22 @@ db.serialize(() => {
       role TEXT DEFAULT 'user',
       ip_address TEXT,
       mac_address TEXT,
+      hwid TEXT,
       network TEXT,
       provider TEXT,
+      olt TEXT,
+      ont TEXT,
       switch TEXT,
       router TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_login DATETIME
     )
   `);
+
+  // Миграция для старых таблиц
+  db.run(`ALTER TABLE users ADD COLUMN hwid TEXT`, (err) => {});
+  db.run(`ALTER TABLE users ADD COLUMN olt TEXT`, (err) => {});
+  db.run(`ALTER TABLE users ADD COLUMN ont TEXT`, (err) => {});
 
   // Таблица банов
   db.run(`
@@ -36,6 +44,34 @@ db.serialize(() => {
       expires_at DATETIME,
       is_active INTEGER DEFAULT 1,
       FOREIGN KEY (banned_by) REFERENCES users(id)
+    )
+  `);
+
+  // Таблица мут
+  db.run(`
+    CREATE TABLE IF NOT EXISTS mutes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      muted_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME,
+      is_active INTEGER DEFAULT 1,
+      FOREIGN KEY (muted_by) REFERENCES users(id)
+    )
+  `);
+
+  // Таблица кик
+  db.run(`
+    CREATE TABLE IF NOT EXISTS kicks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      kicked_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      expires_at DATETIME,
+      is_active INTEGER DEFAULT 1,
+      FOREIGN KEY (kicked_by) REFERENCES users(id)
     )
   `);
 

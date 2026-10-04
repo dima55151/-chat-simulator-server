@@ -67,8 +67,8 @@ body{font-family:Segoe UI,Tahoma,sans-serif;background:#0a0a1a;color:#e0e0e0;}
 </style></head><body><div id="loginPage" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a1a"><div class="card" style="width:400px;padding:30px"><h2 style="color:#00d4ff;text-align:center;margin-bottom:20px">Вход в чат</h2><div id="loginForm"><div class="form-group"><label>Имя пользователя</label><input type="text" id="loginUsername" placeholder="Введите имя"></div><div class="form-group password-wrapper"><label>Пароль</label><input type="password" id="loginPassword" placeholder="Введите пароль"><button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁</button></div><button class="btn" id="loginBtn" style="width:100%;margin-bottom:10px">Войти</button><div id="savedAccountsSection" class="saved-accounts" style="display:none"><h4>Сохранённые аккаунты</h4><div id="savedAccountsList"></div></div><p style="text-align:center;color:#8888aa;font-size:13px">Нет аккаунта? <a href="#" id="showRegister" style="color:#0066ff">Зарегистрироваться</a></p></div><div id="registerForm" style="display:none"><div class="form-group"><label>Имя пользователя</label><input type="text" id="regUsername" placeholder="Придумайте имя"></div><div class="form-group password-wrapper"><label>Пароль</label><input type="password" id="regPassword" placeholder="Придумайте пароль"><button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁</button></div><div class="form-group password-wrapper"><label>Повторите пароль</label><input type="password" id="regPassword2" placeholder="Повторите пароль"><button type="button" class="toggle-password" onclick="togglePassword('regPassword2', this)">👁</button></div><div id="passwordMatch" style="margin-bottom:10px;font-size:12px;color:#8888aa"></div><button class="btn btn-success" id="registerBtn" style="width:100%;margin-bottom:10px">Зарегистрироваться</button><p style="text-align:center;color:#8888aa;font-size:13px">Уже есть аккаунт? <a href="#" id="showLogin" style="color:#0066ff">Войти</a></p></div><div id="banMessage" style="display:none;text-align:center"><div style="font-size:48px;margin-bottom:15px">🚫</div><h3 style="color:#ff3344;margin-bottom:10px">Вам запрещён доступ!</h3><p id="banReasonText" style="color:#e0e0e0;margin-bottom:15px"></p><p style="color:#8888aa;font-size:12px">Если это ошибка, обратитесь к администратору</p></div></div></div><div class="app" id="mainApp" style="display:none"><div class="sidebar">    <h2>Чат</h2><button class="nav-btn active" data-page="chat">Чат</button><button class="nav-btn" data-page="profile">Профиль</button><button class="nav-btn" data-page="userRules">Правила</button><button class="nav-btn" data-page="userStats">Статистика</button><button class="nav-btn" data-page="users">Пользователи</button><button class="nav-btn" data-page="bans">Баны</button><button class="nav-btn" data-page="rules">Правила</button><button class="nav-btn" data-page="stats">Статистика</button><button class="nav-btn" data-page="learn">Обучение</button><div style="margin-top:auto"><button class="nav-btn" id="autoChatBtn" style="width:100%">Авто-чат: ВЫКЛ</button><div style="display:flex;gap:5px;margin-top:5px"><button class="nav-btn btn-sm" id="saveBtn" style="flex:1">Сохранить</button><button class="nav-btn btn-sm" id="loadBtn" style="flex:1">Загрузить</button></div><button class="nav-btn" id="logoutBtn" style="width:100%;margin-top:10px;background:#ff3344">Выйти</button></div></div><div class="main"><div class="page active" id="page-chat"><div class="page-header"><h1>Чат</h1></div><div class="chat-container"><div class="chat-messages" id="chatMessages"></div><div class="chat-input-area"><input type="text" class="chat-input" id="chatInput" placeholder="Написать сообщение..."><button class="btn" id="sendBtn">Отправить</button></div></div></div><div class="page" id="page-profile"><div class="page-header"><h1>Мой профиль</h1></div><div class="content"><div class="card"><h3>Информация о аккаунте</h3><div id="profileInfo"></div></div></div></div><div class="page" id="page-userRules"><div class="page-header"><h1>Правила чата</h1></div><div class="content"><div class="card"><h3>Правила которые нужно соблюдать</h3><div id="userRulesList"></div></div></div></div><div class="page" id="page-userStats"><div class="page-header"><h1>Статистика чата</h1></div><div class="content"><div id="userChatStats"></div></div></div><div class="page" id="page-users"><div class="page-header"><h1>Пользователи</h1></div><div class="content"><div class="card"><h3>Добавить пользователя</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="form-group" style="flex:1;min-width:150px"><label>Имя</label><input type="text" id="newUserName" placeholder="Введите имя"></div><div class="form-group" style="flex:0 0 auto"><label>Роль</label><select id="newUserRole"><option value="member">Участник</option><option value="vip">VIP</option><option value="mod">Модератор</option><option value="admin">Админ</option><option value="owner">Владелец</option></select></div><div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-success" id="addUserBtn">Добавить</button></div></div></div><div class="card"><h3>Список пользователей</h3><table class="table"><thead><tr><th>Имя</th><th>Роль</th><th>Действия</th></tr></thead><tbody id="usersTable"></tbody></table></div></div></div><div class="page" id="page-bans"><div class="page-header"><h1>Баны</h1></div><div class="content"><div class="card"><h3>Забанить пользователя</h3><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="form-group" style="flex:1;min-width:150px"><label>Пользователь</label><select id="banUserSelect"></select></div><div class="form-group" style="flex:0 0 auto"><label>Тип</label><select id="banTypeSelect"><option value="ip">IP</option><option value="mac">MAC</option><option value="hwid">HWID</option><option value="subnet">Подсеть</option><option value="provider">Провайдер</option><option value="name">Имя</option><option value="optika">Оптика</option><option value="commutator">Коммутатор</option></select></div><div class="form-group" style="flex:1;min-width:150px"><label>Причина</label><input type="text" id="banReason" placeholder="Введите причину"></div><div class="form-group" style="flex:0 0 auto;display:flex;align-items:flex-end"><button class="btn btn-danger" id="banBtn">Забанить</button></div></div></div><div class="card"><h3>Забаненные пользователи</h3><table class="table"><thead><tr><th>Пользователь</th><th>Тип</th><th>Причина</th><th>Действие</th></tr></thead><tbody id="bansTable"></tbody></table></div></div></div><div class="page" id="page-rules"><div class="page-header"><h1>Правила</h1></div><div class="content"><div class="card"><h3>Добавить правило</h3><div style="display:flex;gap:10px"><div class="form-group" style="flex:1"><input type="text" id="newRuleInput" placeholder="Новое правило..."></div><button class="btn btn-success" id="addRuleBtn">Добавить</button></div></div><div class="card"><h3>Список правил</h3><ul id="rulesList"></ul></div></div></div><div class="page" id="page-stats"><div class="page-header"><h1>Статистика</h1></div><div class="content"><div class="card"><h3>Статистика</h3><p>Всего пользователей: <span id="statTotalUsers">0</span></p><p>Онлайн: <span id="statOnlineUsers">0</span></p><p>Всего сообщений: <span id="statTotalMessages">0</span></p><p>Забанено: <span id="statBannedUsers">0</span></p><p>Активных модераторов: <span id="statActiveMods">0</span></p><p>Количество правил: <span id="statRulesCount">0</span></p></div></div></div><div class="page" id="page-learn"><div class="page-header"><h1>Обучение</h1></div><div class="content"><div class="card"><h3>Уроки</h3><div id="lessonsList"></div></div><div class="card" id="lessonContent" style="display:none"><h3 id="lessonTitle"></h3><div id="lessonBody"></div><button class="btn btn-success" id="completeLessonBtn">Завершить урок</button><button class="btn" id="prevLessonBtn">Назад</button></div></div></div></div></div>
 <script>
 // ============ DATA ============
-const BAN_LABELS = ['IP','MAC','HWID','Подсеть','Провайдер','Имя','Оптика','Коммутатор','Домен','Город','Провайдер2','Роутер'];
-const BAN_TYPES = ['ip','mac','hwid','subnet','provider','name','optika','commutator','domain','city','provider2','router'];
+const BAN_LABELS = ['IP','MAC','HWID','Подсеть','Провайдер','Имя','OLT','ONT','Коммутатор','Город'];
+const BAN_TYPES = ['ip','mac','hwid','subnet','provider','name','olt','ont','commutator','city'];
 const ROLE_LABELS = {member:'Участник',vip:'VIP',mod:'Модератор',admin:'Админ',owner:'Владелец'};
 const ROLE_ORDER = {member:0,vip:1,mod:2,admin:3,owner:4};
 
@@ -552,17 +552,24 @@ function removeUser(username) {
 }
 
 function renderUsers() {
-  const el = document.getElementById('usersTable');
-  if(!el) return;
-  const isAdminOrMod = currentUser && ['admin','owner','mod'].includes(currentUser.role);
-  el.innerHTML = state.users.map((u,i)=>{
-    const showRemove = isAdminOrMod;
-    const roleBadge = '<span class="badge badge-'+u.role+'">'+ROLE_LABELS[u.role]+'</span>';
-    const banStatus = u.banned ? '<span class="badge badge-banned">ЗАБАНЕН</span>' : '<span style="color:#00cc66">OK</span>';
-    const removeBtn = showRemove ? '<td><button class="btn btn-sm btn-danger" onclick="removeUser(\''+u.username+'\')">Удалить</button></td>' : '<td>'+banStatus+'</td>';
-    const rankBtn = isAdminOrMod ? '<button class="btn btn-sm" onclick="changeRole(\''+u.username+'\')">Ранг</button>' : '';
-    return '<tr><td>'+u.username+'</td><td>'+roleBadge+'</td><td>'+banStatus+'</td><td>'+rankBtn+'</td>'+removeBtn+'</tr>';
-  }).join('');
+  if(!currentUser || !['admin','owner','mod'].includes(currentUser.role)) return;
+  
+  fetch('/api/users', {
+    headers: {'x-session': JSON.stringify({username: currentUser.username})}
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data.success) return;
+    const el = document.getElementById('usersTable');
+    if(!el) return;
+    el.innerHTML = data.users.map(u => {
+      const roleBadge = '<span class="badge badge-'+u.role+'">'+ROLE_LABELS[u.role]+'</span>';
+      const banStatus = '<span style="color:#00cc66">OK</span>';
+      const rankBtn = '<button class="btn btn-sm" onclick="changeRole(\''+u.username+'\')">Ранг</button>';
+      return '<tr><td>'+u.username+'</td><td>'+roleBadge+'</td><td>'+banStatus+'</td><td>'+rankBtn+'</td><td></td></tr>';
+    }).join('');
+  })
+  .catch(err => console.error(err));
 }
 
 function changeRole(username) {
@@ -594,7 +601,7 @@ function updateBanUserSelect() {
     if(isMod) {
       typeSel.innerHTML = '<option value="name">Имя</option>';
     } else {
-      typeSel.innerHTML = '<option value="ip">IP</option><option value="mac">MAC</option><option value="hwid">HWID</option><option value="subnet">Подсеть</option><option value="provider">Провайдер</option><option value="name">Имя</option><option value="optika">Оптика</option><option value="commutator">Коммутатор</option>';
+      typeSel.innerHTML = '<option value="ip">IP</option><option value="mac">MAC</option><option value="hwid">HWID</option><option value="subnet">Подсеть</option><option value="provider">Провайдер</option><option value="olt">OLT</option><option value="ont">ONT</option><option value="commutator">Коммутатор</option><option value="city">Город</option><option value="name">Имя</option>';
     }
   }
 }
@@ -620,43 +627,28 @@ function banUser() {
     return;
   }
   
-  const banType = BAN_TYPES.indexOf(banTypeStr);
-  if(banType === -1) { notify('Неизвестный тип бана!','error'); return; }
-  
-  const user = state.users.find(u=>u.username===username);
-  if(!user) { notify('Пользователь не найден!','error'); return; }
-  
-  const banDate = new Date().toLocaleDateString('ru-RU');
-  let banValue = '';
-  if(banTypeStr==='ip') banValue = user.ip||'';
-  else if(banTypeStr==='mac') banValue = user.mac||'';
-  else if(banTypeStr==='hwid') banValue = user.hwid||'';
-  else if(banTypeStr==='subnet') banValue = (user.ip||'').split('.').slice(0,3).join('.');
-  else if(banTypeStr==='provider') banValue = user.olt||'';
-  else if(banTypeStr==='optika') banValue = user.ont||'';
-  else if(banTypeStr==='commutator') banValue = user.mac||'';
-  else if(banTypeStr==='domain') banValue = 'example.com';
-  else if(banTypeStr==='city') banValue = 'Москва';
-  else if(banTypeStr==='provider2') banValue = 'Ростелеком';
-  else if(banTypeStr==='router') banValue = 'user-router-001';
-  else if(banTypeStr==='name') banValue = username;
-  
-  state.bans.push({username, banType, banTypeStr, reason, banDate, unban:false, value:banValue});
-  
-  user.banned = true;
-  user.banReason = reason;
-  user.banType = banTypeStr;
-  user.banDate = banDate;
-  
-  renderBans();
-  renderUsers();
-  updateBanUserSelect();
-  addLog('Пользователь ' + username + ' забанен (' + banTypeStr + '): ' + reason);
-  notify('Пользователь ' + username + ' забанен!','success');
-  
-  const moderatorLabel = (currentUser.role==='mod') ? 'Модератор' : 'Админ';
-  const banMsg = '🚫 '+moderatorLabel+' забанил пользователя ' + username + ' (тип: ' + banTypeStr + ', причина: ' + reason + ')';
-  addChatMessage('Система', banMsg);
+  // Отправляем запрос на сервер
+  fetch('/api/ban', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({target_username: username, ban_type: banTypeStr, ban_value: username, reason})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(data.success) {
+      const moderatorLabel = (currentUser.role==='mod') ? 'Модератор' : 'Админ';
+      notify('Пользователь '+username+' забанен!','success');
+      addChatMessage('Система','🚫 '+moderatorLabel+' забанил пользователя '+username+' (тип: '+banTypeStr+', причина: '+reason+')');
+      addLog('Пользователь '+username+' забанен ('+banTypeStr+'): '+reason);
+      renderBans();
+      updateBanUserSelect();
+    } else {
+      notify('❌ '+data.message,'error');
+    }
+  })
+  .catch(err => {
+    notify('❌ Ошибка сервера','error');
+  });
 }
 
 function unbanUser(idx) {
@@ -684,8 +676,9 @@ function unbanUser(idx) {
 function renderBans() {
   const el = document.getElementById('bansTable');
   if(!el) return;
+  const typeMap = {ip:'IP',mac:'MAC',hwid:'HWID',subnet:'Подсеть',provider:'Провайдер',name:'Имя',olt:'OLT',ont:'ONT',commutator:'Коммутатор',city:'Город'};
   el.innerHTML = state.bans.map((b,i)=>{
-    const label = b.banTypeStr || BAN_LABELS[b.banType] || 'Unknown';
+    const label = typeMap[b.banTypeStr] || b.banTypeStr || 'Unknown';
     return '<tr><td>'+b.username+'</td><td><span class="badge badge-admin">'+label+'</span></td><td>'+b.reason+'</td><td><button class="btn btn-sm btn-success" onclick="unbanUser('+i+')">Разбанить</button></td></tr>';
   }).join('');
 }
@@ -819,35 +812,42 @@ function login() {
   
   if(!FORM_PROTECTION.checkFormSubmission('login')) { return; }
   
-  const user = state.users.find(u=>u.username===username && u.password===password);
-  if(!user) { notify('Неверное имя или пароль!','error'); ANTI_CHEAT.detectViolation('Неверный логин/пароль'); return; }
-  if(user.banned) { notify('Вы забанены! Причина: '+user.banReason,'error'); return; }
-  
-  // Проверяем мут
-  const muted = state.mutedUsers.find(m=>m.username.toLowerCase()===username.toLowerCase() && m.until && new Date(m.until)>new Date());
-  if(muted) {
-    const until = new Date(muted.until).toLocaleString('ru-RU');
-    notify('🔇 Вы замучены до '+until+'! Причина: '+muted.reason,'error');
-    return;
-  }
-  
-  // Проверяем кик
-  const kicked = state.kickedUsers.find(k=>k.username.toLowerCase()===username.toLowerCase() && k.until && new Date(k.until)>new Date());
-  if(kicked) {
-    const until = new Date(kicked.until).toLocaleString('ru-RU');
-    notify('👢 Вы кикнуты до '+until+'! Причина: '+kicked.reason,'error');
-    return;
-  }
-  
-  currentUser = user;
-  saveAccountToLocalStorage(username, password);
-  SESSION_SECURITY.updateSession();
-  renderSavedAccounts();
-  updateNavigation();
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'flex';
-  notify('Добро пожаловать, '+username+'!','success');
-  addLog('Пользователь ' + username + ' вошёл в чат');
+  // Отправляем запрос на сервер
+  fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data.success) {
+      if(data.banType) {
+        notify('🚫 Вы забанены! Причина: '+data.message,'error');
+      } else if(data.muteType) {
+        notify('🔇 Вы замучены! Причина: '+data.message,'error');
+      } else if(data.kickType) {
+        notify('👢 Вы кикнуты! Причина: '+data.message,'error');
+      } else {
+        notify(data.message,'error');
+      }
+      ANTI_CHEAT.detectViolation('Неверный логин/пароль');
+      return;
+    }
+    
+    currentUser = {username: data.user.username, role: data.user.role, id: data.user.id};
+    saveAccountToLocalStorage(username, password);
+    SESSION_SECURITY.updateSession();
+    renderSavedAccounts();
+    updateNavigation();
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+    notify('Добро пожаловать, '+username+'!','success');
+    addLog('Пользователь ' + username + ' вошёл в чат');
+  })
+  .catch(err => {
+    console.error(err);
+    notify('Ошибка соединения с сервером','error');
+  });
 }
 
 function register() {
@@ -875,85 +875,37 @@ function register() {
   const olt = generateDevice('OLT');
   const ont = generateDevice('ONT');
   
-  if(checkBannedUser(username, ip, mac, hwid, olt, ont)) return;
-  addUser(username, password, 'member', ip, mac, hwid, olt, ont);
-  saveAccountToLocalStorage(username, password);
-  addLog('Пользователь ' + username + ' зарегистрирован');
-  notify('Регистрация успешна! Аккаунт сохранён. Теперь войдите.','success');
-  document.getElementById('regUsername').value='';
-  document.getElementById('regPassword').value='';
-  document.getElementById('regPassword2').value='';
-  document.getElementById('passwordMatch').textContent='';
-  document.getElementById('showLogin').click();
-  renderSavedAccounts();
+  // Отправляем запрос на сервер
+  fetch('/api/register', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password, ip, mac, hwid, network: ip?.split('.').slice(0,3).join('.'), provider: olt, switchInfo: mac, router: 'router-001', olt, ont})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data.success) {
+      notify('❌ '+data.message,'error');
+      return;
+    }
+    addUser(username, password, 'member', ip, mac, hwid, olt, ont);
+    saveAccountToLocalStorage(username, password);
+    addLog('Пользователь ' + username + ' зарегистрирован');
+    notify('Регистрация успешна! Аккаунт сохранён. Теперь войдите.','success');
+    document.getElementById('regUsername').value='';
+    document.getElementById('regPassword').value='';
+    document.getElementById('regPassword2').value='';
+    document.getElementById('passwordMatch').textContent='';
+    document.getElementById('showLogin').click();
+    renderSavedAccounts();
+  })
+  .catch(err => {
+    console.error(err);
+    notify('Ошибка соединения с сервером','error');
+  });
 }
 
 function checkBannedUser(username, ip, mac, hwid, olt, ont) {
-  for(const ban of state.bans) {
-    if(ban.unban) continue;
-    const banTypeStr = ban.banTypeStr || '';
-    
-    if(banTypeStr==='name' && ban.username.toLowerCase()===username.toLowerCase()) {
-      notify('Имя забанено! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='ip' && ip && ban.value===ip) {
-      notify('IP забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='mac' && mac && ban.value===mac) {
-      notify('MAC забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='hwid' && hwid && ban.value===hwid) {
-      notify('HWID забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='subnet' && ip && ban.value && ip.startsWith(ban.value)) {
-      notify('Подсеть забанена! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='provider' && ban.value && (ip||olt) && (ban.value===ip||ban.value===olt)) {
-      notify('Провайдер забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='optika' && ont && ban.value===ont) {
-      notify('Оптика забанена! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='commutator' && ban.value && (mac||ont) && (ban.value===mac||ban.value===ont)) {
-      notify('Коммутатор забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='domain' && ban.value) {
-      notify('Домен забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='city' && ban.value) {
-      notify('Город забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='provider2' && ban.value) {
-      notify('Провайдер забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-    if(banTypeStr==='router' && ban.value) {
-      notify('Роутер забанен! Причина: '+ban.reason,'error');
-      showBanScreen(ban);
-      return true;
-    }
-  }
+  // Проверка банов теперь происходит на сервере при регистрации
   return false;
 }
 
@@ -973,29 +925,6 @@ function sendMessage() {
   const input = document.getElementById('chatInput');
   let text = input.value.trim();
   if(!text) return;
-  
-  // Проверяем мут
-  const muted = state.mutedUsers.find(m=>m.username.toLowerCase()===currentUser.username.toLowerCase() && m.until && new Date(m.until)>new Date());
-  if(muted) {
-    const until = new Date(muted.until).toLocaleString('ru-RU');
-    notify('🔇 Вы замучены до '+until+'! Причина: '+muted.reason,'error');
-    input.value = '';
-    return;
-  }
-  
-  // Проверяем кик
-  const kicked = state.kickedUsers.find(k=>k.username.toLowerCase()===currentUser.username.toLowerCase() && k.until && new Date(k.until)>new Date());
-  if(kicked) {
-    const until = new Date(kicked.until).toLocaleString('ru-RU');
-    notify('👢 Вы кикнуты до '+until+'! Причина: '+kicked.reason,'error');
-    input.value = '';
-    return;
-  }
-  
-  // Очищаем истёкшие муты и кики
-  const now = new Date();
-  state.mutedUsers = state.mutedUsers.filter(m=>!m.until || new Date(m.until)<=now);
-  state.kickedUsers = state.kickedUsers.filter(k=>!k.until || new Date(k.until)<=now);
   
   // Проверяем команды модераторов
   if(text.startsWith('/')) {
@@ -1019,9 +948,30 @@ function sendMessage() {
     return;
   }
   
-  addChatMessage(currentUser.username, text, true);
-  input.value = '';
-  input.focus();
+  // Отправляем на сервер
+  fetch('/api/message', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-session': JSON.stringify({username: currentUser.username})
+    },
+    body: JSON.stringify({message: text})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data.success) {
+      notify('❌ '+data.message,'error');
+      return;
+    }
+    input.value = '';
+    input.focus();
+    // Обновляем сообщения
+    loadMessages();
+  })
+  .catch(err => {
+    console.error(err);
+    notify('Ошибка соединения','error');
+  });
 }
 
 function handleModCommand(text) {
@@ -1045,16 +995,21 @@ function handleModCommand(text) {
       addChatMessage('Система','❌ Нельзя мутировать администраторов!');
       return;
     }
-    const existing = state.mutedUsers.find(m=>m.username.toLowerCase()===targetName.toLowerCase());
-    if(existing) {
-      existing.reason = reason;
-      existing.until = new Date(Date.now()+30*60000).toISOString();
-      existing.mutedBy = currentUser.username;
-    } else {
-      state.mutedUsers.push({username:target.username, reason, until:new Date(Date.now()+30*60000).toISOString(), mutedBy:currentUser.username});
-    }
-    addChatMessage('Система','🔇 '+target.username+' замучен на 30 минут. Причина: '+reason+' (Модератор: '+currentUser.username+')');
-    addLog('Мут: '+target.username+' на 30 мин (модератор: '+currentUser.username+')');
+    // Отправляем запрос на сервер
+    fetch('/api/mute', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, reason, duration: 30})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🔇 '+targetName+' замучен на 30 минут. Причина: '+reason+' (Модератор: '+currentUser.username+')');
+        addLog('Мут: '+targetName+' на 30 мин (модератор: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
     return;
   }
   
@@ -1062,9 +1017,20 @@ function handleModCommand(text) {
   if(cmd === '/unmute') {
     const targetName = parts[1]?.replace('@','');
     if(!targetName) { addChatMessage('Система','❌ Использование: /unmute @username'); return; }
-    state.mutedUsers = state.mutedUsers.filter(m=>m.username.toLowerCase()!==targetName.toLowerCase());
-    addChatMessage('Система','✅ '+targetName+' размучен (модератор: '+currentUser.username+')');
-    addLog('Размут: '+targetName+' (модератор: '+currentUser.username+')');
+    fetch('/api/unmute', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','✅ '+targetName+' размучен (модератор: '+currentUser.username+')');
+        addLog('Размут: '+targetName+' (модератор: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
     return;
   }
   
@@ -1079,9 +1045,21 @@ function handleModCommand(text) {
       addChatMessage('Система','❌ Нельзя кикать администраторов!');
       return;
     }
-    state.kickedUsers.push({username:target.username, until:new Date(Date.now()+60*60000).toISOString(), kickedBy:currentUser.username, reason});
-    addChatMessage('Система','👢 '+target.username+' кикнут на 1 час. Причина: '+reason+' (Модератор: '+currentUser.username+')');
-    addLog('Кик: '+target.username+' на 1 час (модератор: '+currentUser.username+')');
+    // Отправляем запрос на сервер
+    fetch('/api/kick', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, reason, duration: 60})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','👢 '+targetName+' кикнут на 1 час. Причина: '+reason+' (Модератор: '+currentUser.username+')');
+        addLog('Кик: '+targetName+' на 1 час (модератор: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
     return;
   }
   
@@ -1096,18 +1074,264 @@ function handleModCommand(text) {
       addChatMessage('Система','❌ Нельзя банить администраторов!');
       return;
     }
-    const existingBan = state.bans.find(b=>b.username.toLowerCase()===targetName.toLowerCase() && !b.unban);
-    if(existingBan) {
-      addChatMessage('Система','❌ Пользователь уже забанен!');
+    // Отправляем запрос на сервер
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'username', ban_value: targetName, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по имени. Причина: '+reason+' (Модератор: '+currentUser.username+')');
+        addLog('Бан имени: '+targetName+' (модератор: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /banip @username ip_адрес причина
+  if(cmd === '/banip') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по IP!');
       return;
     }
-    state.bans.push({username:target.username, banType:6, banTypeStr:'name', reason, banDate:new Date().toLocaleDateString('ru-RU'), unban:false, value:targetName, kickedBy:currentUser.username});
-    target.banned = true;
-    target.banReason = reason;
-    target.banType = 'name';
-    target.banDate = new Date().toLocaleDateString('ru-RU');
-    addChatMessage('Система','🚫 '+target.username+' забанен по имени. Причина: '+reason+' (Модератор: '+currentUser.username+')');
-    addLog('Бан имени: '+target.username+' (модератор: '+currentUser.username+')');
+    const targetName = parts[1]?.replace('@','');
+    const ip = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !ip) { addChatMessage('Система','❌ Использование: /banip @username IP_адрес причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'ip', ban_value: ip, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по IP: '+ip+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан IP: '+ip+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /banmac @username mac_адрес причина
+  if(cmd === '/banmac') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по MAC!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const mac = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !mac) { addChatMessage('Система','❌ Использование: /banmac @username MAC_адрес причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'mac', ban_value: mac, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по MAC: '+mac+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан MAC: '+mac+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /banhwid @username hwid причина
+  if(cmd === '/banhwid') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по HWID!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const hwid = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !hwid) { addChatMessage('Система','❌ Использование: /banhwid @username HWID причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'hwid', ban_value: hwid, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по HWID: '+hwid+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан HWID: '+hwid+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /bansubnet @username подсеть причина
+  if(cmd === '/bansubnet') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по подсети!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const subnet = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !subnet) { addChatMessage('Система','❌ Использование: /bansubnet @username подсеть причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'subnet', ban_value: subnet, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по подсети: '+subnet+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан подсети: '+subnet+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /banprovider @username провайдер причина
+  if(cmd === '/banprovider') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по провайдеру!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const provider = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !provider) { addChatMessage('Система','❌ Использование: /banprovider @username провайдер причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'provider', ban_value: provider, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по провайдеру: '+provider+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан провайдера: '+provider+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /banolt @username olt причина
+  if(cmd === '/banolt') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по OLT!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const olt = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !olt) { addChatMessage('Система','❌ Использование: /banolt @username OLT причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'olt', ban_value: olt, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по OLT: '+olt+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан OLT: '+olt+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /banont @username ont причина
+  if(cmd === '/banont') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по ONT!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const ont = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !ont) { addChatMessage('Система','❌ Использование: /banont @username ONT причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'ont', ban_value: ont, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по ONT: '+ont+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан ONT: '+ont+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /bancomm @username коммутатор причина
+  if(cmd === '/bancomm') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по коммутатору!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const comm = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !comm) { addChatMessage('Система','❌ Использование: /bancomm @username коммутатор причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'commutator', ban_value: comm, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по коммутатору: '+comm+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан коммутатора: '+comm+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
+    return;
+  }
+  
+  // /bancity @username город причина
+  if(cmd === '/bancity') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут банить по городу!');
+      return;
+    }
+    const targetName = parts[1]?.replace('@','');
+    const city = parts[2] || '';
+    const reason = parts.slice(3).join(' ') || 'Без причины';
+    if(!targetName || !city) { addChatMessage('Система','❌ Использование: /bancity @username город причина'); return; }
+    fetch('/api/ban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({target_username: targetName, ban_type: 'city', ban_value: city, reason})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','🚫 '+targetName+' забанен по городу: '+city+'. Причина: '+reason+' (Админ: '+currentUser.username+')');
+        addLog('Бан города: '+city+' (админ: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
     return;
   }
   
@@ -1115,14 +1339,20 @@ function handleModCommand(text) {
   if(cmd === '/unban') {
     const targetName = parts[1]?.replace('@','');
     if(!targetName) { addChatMessage('Система','❌ Использование: /unban @username'); return; }
-    const banIdx = state.bans.findIndex(b=>b.username.toLowerCase()===targetName.toLowerCase() && !b.unban);
-    if(banIdx===-1) { addChatMessage('Система','❌ Пользователь не забанен!'); return; }
-    const ban = state.bans[banIdx];
-    const user = state.users.find(u=>u.username===ban.username);
-    if(user) user.banned = false;
-    state.bans.splice(banIdx, 1);
-    addChatMessage('Система','✅ '+targetName+' разбанен (модератор: '+currentUser.username+')');
-    addLog('Разбан: '+targetName+' (модератор: '+currentUser.username+')');
+    fetch('/api/unban', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ban_id: 1})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.success) {
+        addChatMessage('Система','✅ '+targetName+' разбанен (модератор: '+currentUser.username+')');
+        addLog('Разбан: '+targetName+' (модератор: '+currentUser.username+')');
+      } else {
+        addChatMessage('Система','❌ '+data.message);
+      }
+    });
     return;
   }
   
@@ -1141,7 +1371,7 @@ function handleModCommand(text) {
   }
   
   // Неизвестная команда
-  addChatMessage('Система','❓ Неизвестная команда. Доступные: /mute, /unmute, /kick, /ban, /unban, /clear');
+  addChatMessage('Система','❓ Доступные команды: /mute, /unmute, /kick, /ban, /unban, /banip, /banmac, /banhwid, /bansubnet, /banprovider, /banolt, /banont, /bancomm, /bancity, /clear');
 }
 
 function addSampleUser() {
@@ -1224,24 +1454,43 @@ function init() {
   if(currentUser) {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('mainApp').style.display = 'flex';
-  }
-  
-  renderUsers();
-  renderBans();
-  renderRules();
-  updateBanUserSelect();
-  renderChat();
-  renderActionLog();
-  renderSavedAccounts();
-  
-  if(state.users.length===0) {
-    addUser('Admin','K9#xL2$vN8@qR5&wP3!mZ7','admin','192.168.1.1','AA:BB:CC:DD:EE:01','HW-11111111','OLT-A-100','ONT-11:22:33:44');
-    addUser('User1','user1','member','192.168.1.2','AA:BB:CC:DD:EE:02','HW-22222222','OLT-A-101','ONT-22:33:44:55');
-    addUser('User2','user2','vip','192.168.1.3','AA:BB:CC:DD:EE:03','HW-33333333','OLT-A-102','ONT-33:44:55:66');
-    addUser('Moderator','mod123','mod','192.168.1.4','AA:BB:CC:DD:EE:04','HW-44444444','OLT-A-103','ONT-44:55:66:77');
+    // Загружаем пользователей и сообщения с сервера
+    setTimeout(()=>{
+      renderUsers();
+      loadMessages();
+    }, 100);
+  } else {
+    renderUsers();
+    renderBans();
+    renderRules();
+    updateBanUserSelect();
+    renderChat();
+    renderActionLog();
+    renderSavedAccounts();
   }
   
   setInterval(saveState, 5000);
+  // Периодически обновляем сообщения
+  setInterval(()=>{ if(currentUser) loadMessages(); }, 5000);
+}
+
+function loadMessages() {
+  fetch('/api/messages', {
+    headers: {'x-session': JSON.stringify({username: currentUser.username})}
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data.success) return;
+    const el = document.getElementById('chatMessages');
+    if(!el) return;
+    state.messages = data.messages;
+    el.innerHTML = data.messages.map(m=>{
+      const isUser = m.username === currentUser.username;
+      return '<div class="chat-msg'+(isUser?' user':'')+'"><div class="sender" style="color:#ffcc00">'+m.username+'</div><div>'+m.message+'</div><div class="time">'+new Date(m.created_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</div></div>';
+    }).join('');
+    el.scrollTop = el.scrollHeight;
+  })
+  .catch(err => console.error(err));
 }
 
 window.addEventListener('DOMContentLoaded', init);
