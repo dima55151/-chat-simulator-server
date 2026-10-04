@@ -9,6 +9,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Serve service worker
+app.get('/sw.js', (req, res) => {
+  res.sendFile(__dirname + '/sw.js');
+});
+
+// Serve manifest
+app.get('/manifest.json', (req, res) => {
+  res.sendFile(__dirname + '/manifest.json');
+});
+
 // Главная страница
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/simulator.html');
@@ -224,10 +234,10 @@ app.get('/api/users', async (req, res) => {
 // ===================== Бан пользователя =====================
 
 app.post('/api/ban', async (req, res) => {
-  const session = req.headers['x-session'];
-  if (!session) return res.json({ success: false });
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
   
-  const moderator = await get('SELECT * FROM users WHERE username = ?', [session.username]);
+  const moderator = await get('SELECT * FROM users WHERE username = ?', [username]);
   if (!moderator || !['mod','admin','owner'].includes(moderator.role)) {
     return res.json({ success: false, message: 'Нет доступа' });
   }
@@ -246,7 +256,7 @@ app.post('/api/ban', async (req, res) => {
   // Разрешённые типы банов для модераторов
   const modAllowedTypes = ['username'];
   // Разрешённые типы банов для админов
-  const adminAllowedTypes = ['ip','mac','hwid','subnet','provider','olt','ont','commutator','domain','city','provider2','router','username'];
+  const adminAllowedTypes = ['ip','mac','hwid','subnet','provider','olt','ont','commutator','city','username'];
   
   const allowedTypes = moderator.role === 'mod' ? modAllowedTypes : adminAllowedTypes;
   if (!allowedTypes.includes(ban_type)) {
@@ -267,10 +277,10 @@ app.post('/api/ban', async (req, res) => {
 // ===================== Разбан =====================
 
 app.post('/api/unban', async (req, res) => {
-  const session = req.headers['x-session'];
-  if (!session) return res.json({ success: false });
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
   
-  const user = await get('SELECT * FROM users WHERE username = ?', [session.username]);
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
   if (!user || !['mod','admin','owner'].includes(user.role)) {
     return res.json({ success: false, message: 'Нет доступа' });
   }
@@ -278,6 +288,131 @@ app.post('/api/unban', async (req, res) => {
   const { ban_id } = req.body;
   await run('UPDATE bans SET is_active = 0 WHERE id = ?', [ban_id]);
   res.json({ success: true, message: 'Бан снят' });
+});
+
+// ===================== Мут пользователя =====================
+
+app.post('/api/mute', async (req, res) => {
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
+  
+  const moderator = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!moderator || !['mod','admin','owner'].includes(moderator.role)) {
+    return res.json({ success: false, message: 'Нет доступа' });
+  }
+  
+  const { target_username, reason, duration } = req.body;
+  
+  if (!target_username || !reason) {
+    return res.json({ success: false, message: 'Заполните все поля' });
+  }
+  
+  try {
+    const expires_at = duration ? new Date(Date.now() + duration * 60000).toISOString() : null;
+    await run('INSERT INTO mutes (username, reason, muted_by, expires_at) VALUES (?, ?, ?, ?)',
+      [target_username, reason, moderator.id, expires_at]);
+    
+    res.json({ success: true, message: 'Пользователь замучен' });
+  } catch (err) {
+    res.json({ success: false, message: 'Ошибка мута' });
+  }
+});
+
+// ===================== Размут =====================
+
+app.post('/api/unmute', async (req, res) => {
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
+  
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!user || !['mod','admin','owner'].includes(user.role)) {
+    return res.json({ success: false, message: 'Нет доступа' });
+  }
+  
+  const { target_username } = req.body;
+  await run('UPDATE mutes SET is_active = 0 WHERE username = ? AND is_active = 1', [target_username]);
+  res.json({ success: true, message: 'Размут выполнен' });
+});
+
+// ===================== Кик пользователя =====================
+
+app.post('/api/kick', async (req, res) => {
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
+  
+  const moderator = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!moderator || !['mod','admin','owner'].includes(moderator.role)) {
+    return res.json({ success: false, message: 'Нет доступа' });
+  }
+  
+  const { target_username, reason, duration } = req.body;
+  
+  if (!target_username || !reason) {
+    return res.json({ success: false, message: 'Заполните все поля' });
+  }
+  
+  try {
+    const expires_at = duration ? new Date(Date.now() + duration * 60000).toISOString() : null;
+    await run('INSERT INTO kicks (username, reason, kicked_by, expires_at) VALUES (?, ?, ?, ?)',
+      [target_username, reason, moderator.id, expires_at]);
+    
+    res.json({ success: true, message: 'Пользователь кикнут' });
+  } catch (err) {
+    res.json({ success: false, message: 'Ошибка кика' });
+  }
+});
+
+// ===================== Получение мут =====================
+
+app.get('/api/mutes', async (req, res) => {
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
+  
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!user || !['mod','admin','owner'].includes(user.role)) {
+    return res.json({ success: false, message: 'Нет доступа' });
+  }
+  
+  const mutes = await all('SELECT m.*, u.username as muted_by_name FROM mutes m LEFT JOIN users u ON m.muted_by = u.id WHERE m.is_active = 1 ORDER BY m.created_at DESC');
+  res.json({ success: true, mutes });
+});
+
+// ===================== Получение кик =====================
+
+app.get('/api/kicks', async (req, res) => {
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
+  
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!user || !['mod','admin','owner'].includes(user.role)) {
+    return res.json({ success: false, message: 'Нет доступа' });
+  }
+  
+  const kicks = await all('SELECT k.*, u.username as kicked_by_name FROM kicks k LEFT JOIN users u ON k.kicked_by = u.id WHERE k.is_active = 1 ORDER BY k.created_at DESC');
+  res.json({ success: true, kicks });
+});
+
+// ===================== Получение пользователей =====================
+
+app.get('/api/users', async (req, res) => {
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
+  
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
+  if (!user || !['admin','owner','mod'].includes(user.role)) {
+    return res.json({ success: false, message: 'Нет доступа' });
+  }
+  
+  const users = await all('SELECT id, username, role, created_at, last_login FROM users ORDER BY created_at DESC');
+  res.json({ success: true, users });
+});
+
+// ===================== Получение сообщений =====================
+
+app.get('/api/messages', async (req, res) => {
+  const messages = await all('SELECT username, message, created_at FROM messages ORDER BY id DESC LIMIT 100');
+  const reversed = messages.reverse();
+  res.json({ success: true, messages: reversed });
 });
 
 // ===================== Мут пользователя =====================
@@ -598,16 +733,16 @@ app.get('/api/messages', async (req, res) => {
 // ===================== Отправка сообщения =====================
 
 app.post('/api/message', async (req, res) => {
-  const session = req.headers['x-session'];
-  if (!session) return res.json({ success: false });
+  const username = req.headers['x-session-username'];
+  if (!username) return res.json({ success: false });
   
-  const user = await get('SELECT * FROM users WHERE username = ?', [session.username]);
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
   if (!user) {
     return res.json({ success: false, message: 'Пользователь не найден' });
   }
   
   // Проверяем мут
-  const mute = await checkMute(session.username);
+  const mute = await checkMute(username);
   if (mute) {
     return res.json({ success: false, message: 'Вы замучены! Причина: ' + mute.reason });
   }
@@ -619,7 +754,7 @@ app.post('/api/message', async (req, res) => {
   
   try {
     await run('INSERT INTO messages (user_id, username, message) VALUES (?, ?, ?)',
-      [user.id, session.username, message]);
+      [user.id, username, message]);
     res.json({ success: true });
   } catch (err) {
     res.json({ success: false, message: 'Ошибка отправки' });

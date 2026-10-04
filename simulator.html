@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Чат</title><style>*{margin:0;padding:0;box-sizing:border-box;}
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Чат</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#0a0a1a"><link rel="manifest" href="/manifest.json"><link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230066ff'/><text x='50' y='70' font-size='60' font-family='Arial' fill='white' text-anchor='middle'>Ч</text></svg>"><style>*{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Tahoma,sans-serif;background:#0a0a1a;color:#e0e0e0;}
 .app{display:flex;height:100vh;}
 .sidebar{width:220px;background:#111128;padding:15px;display:flex;flex-direction:column;gap:5px;border-right:2px solid #1a1a3e;}
@@ -555,7 +555,7 @@ function renderUsers() {
   if(!currentUser || !['admin','owner','mod'].includes(currentUser.role)) return;
   
   fetch('/api/users', {
-    headers: {'x-session': JSON.stringify({username: currentUser.username})}
+    headers: {'x-session-username': currentUser.username}
   })
   .then(r => r.json())
   .then(data => {
@@ -630,7 +630,7 @@ function banUser() {
   // Отправляем запрос на сервер
   fetch('/api/ban', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
     body: JSON.stringify({target_username: username, ban_type: banTypeStr, ban_value: username, reason})
   })
   .then(r => r.json())
@@ -953,7 +953,7 @@ function sendMessage() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-session': JSON.stringify({username: currentUser.username})
+      'x-session-username': currentUser.username
     },
     body: JSON.stringify({message: text})
   })
@@ -998,7 +998,7 @@ function handleModCommand(text) {
     // Отправляем запрос на сервер
     fetch('/api/mute', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, reason, duration: 30})
     })
     .then(r => r.json())
@@ -1019,7 +1019,7 @@ function handleModCommand(text) {
     if(!targetName) { addChatMessage('Система','❌ Использование: /unmute @username'); return; }
     fetch('/api/unmute', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName})
     })
     .then(r => r.json())
@@ -1048,7 +1048,7 @@ function handleModCommand(text) {
     // Отправляем запрос на сервер
     fetch('/api/kick', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, reason, duration: 60})
     })
     .then(r => r.json())
@@ -1077,7 +1077,7 @@ function handleModCommand(text) {
     // Отправляем запрос на сервер
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'username', ban_value: targetName, reason})
     })
     .then(r => r.json())
@@ -1104,7 +1104,7 @@ function handleModCommand(text) {
     if(!targetName || !ip) { addChatMessage('Система','❌ Использование: /banip @username IP_адрес причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'ip', ban_value: ip, reason})
     })
     .then(r => r.json())
@@ -1131,7 +1131,7 @@ function handleModCommand(text) {
     if(!targetName || !mac) { addChatMessage('Система','❌ Использование: /banmac @username MAC_адрес причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'mac', ban_value: mac, reason})
     })
     .then(r => r.json())
@@ -1158,7 +1158,7 @@ function handleModCommand(text) {
     if(!targetName || !hwid) { addChatMessage('Система','❌ Использование: /banhwid @username HWID причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'hwid', ban_value: hwid, reason})
     })
     .then(r => r.json())
@@ -1185,7 +1185,7 @@ function handleModCommand(text) {
     if(!targetName || !subnet) { addChatMessage('Система','❌ Использование: /bansubnet @username подсеть причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'subnet', ban_value: subnet, reason})
     })
     .then(r => r.json())
@@ -1212,7 +1212,7 @@ function handleModCommand(text) {
     if(!targetName || !provider) { addChatMessage('Система','❌ Использование: /banprovider @username провайдер причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'provider', ban_value: provider, reason})
     })
     .then(r => r.json())
@@ -1239,7 +1239,7 @@ function handleModCommand(text) {
     if(!targetName || !olt) { addChatMessage('Система','❌ Использование: /banolt @username OLT причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'olt', ban_value: olt, reason})
     })
     .then(r => r.json())
@@ -1266,7 +1266,7 @@ function handleModCommand(text) {
     if(!targetName || !ont) { addChatMessage('Система','❌ Использование: /banont @username ONT причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'ont', ban_value: ont, reason})
     })
     .then(r => r.json())
@@ -1293,7 +1293,7 @@ function handleModCommand(text) {
     if(!targetName || !comm) { addChatMessage('Система','❌ Использование: /bancomm @username коммутатор причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'commutator', ban_value: comm, reason})
     })
     .then(r => r.json())
@@ -1320,7 +1320,7 @@ function handleModCommand(text) {
     if(!targetName || !city) { addChatMessage('Система','❌ Использование: /bancity @username город причина'); return; }
     fetch('/api/ban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({target_username: targetName, ban_type: 'city', ban_value: city, reason})
     })
     .then(r => r.json())
@@ -1341,7 +1341,7 @@ function handleModCommand(text) {
     if(!targetName) { addChatMessage('Система','❌ Использование: /unban @username'); return; }
     fetch('/api/unban', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'x-session-username': currentUser.username},
       body: JSON.stringify({ban_id: 1})
     })
     .then(r => r.json())
@@ -1406,6 +1406,31 @@ function init() {
   
   // Initialize anti-cheat system
   ANTI_CHEAT.init();
+  
+  // Register service worker for PWA
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(()=>console.log('Service Worker зарегистрирован'))
+      .catch(err=>console.error('Ошибка SW:', err));
+  }
+  
+  // Install button
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallButton();
+  });
+  
+  document.getElementById('installBtn')?.addEventListener('click', ()=>{
+    if(deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((result)=>{
+        if(result.outcome==='accepted') notify('✅ Приложение установлено!','success');
+        deferredPrompt = null;
+      });
+    }
+  });
   
   document.getElementById('loginBtn').addEventListener('click', login);
   document.getElementById('showRegister').addEventListener('click', (e)=>{
@@ -1476,7 +1501,7 @@ function init() {
 
 function loadMessages() {
   fetch('/api/messages', {
-    headers: {'x-session': JSON.stringify({username: currentUser.username})}
+    headers: {'x-session-username': currentUser.username}
   })
   .then(r => r.json())
   .then(data => {
@@ -1491,6 +1516,24 @@ function loadMessages() {
     el.scrollTop = el.scrollHeight;
   })
   .catch(err => console.error(err));
+}
+
+function showInstallButton() {
+  let installBtn = document.getElementById('installBtn');
+  if(!installBtn) {
+    const sidebar = document.querySelector('.sidebar');
+    if(!sidebar) return;
+    
+    installBtn = document.createElement('button');
+    installBtn.id = 'installBtn';
+    installBtn.className = 'nav-btn';
+    installBtn.innerHTML = '📱 Установить приложение';
+    sidebar.appendChild(installBtn);
+  }
+  installBtn.style.display = 'block';
+  installBtn.style.background = '#00cc66';
+  installBtn.style.color = '#fff';
+  installBtn.style.fontWeight = 'bold';
 }
 
 window.addEventListener('DOMContentLoaded', init);
