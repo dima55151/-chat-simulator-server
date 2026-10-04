@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const db = require('./database');
+const { run, get, all } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,33 +8,33 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// ===================== Баны =====================
+// ===================== Проверка банов =====================
 
-function checkBan(ip, mac, network, provider, switchInfo, username) {
+async function checkBan(ip, mac, network, provider, switchInfo, username) {
   const bans = [];
   
   if (ip) {
-    const ban = db.prepare('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1').get('ip', ip);
+    const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['ip', ip]);
     if (ban) bans.push(ban);
   }
   if (mac) {
-    const ban = db.prepare('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1').get('mac', mac);
+    const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['mac', mac]);
     if (ban) bans.push(ban);
   }
   if (network) {
-    const ban = db.prepare('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1').get('network', network);
+    const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['network', network]);
     if (ban) bans.push(ban);
   }
   if (provider) {
-    const ban = db.prepare('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1').get('provider', provider);
+    const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['provider', provider]);
     if (ban) bans.push(ban);
   }
   if (switchInfo) {
-    const ban = db.prepare('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1').get('switch', switchInfo);
+    const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['switch', switchInfo]);
     if (ban) bans.push(ban);
   }
   
-  const userBan = db.prepare('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1').get('username', username);
+  const userBan = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['username', username]);
   if (userBan) bans.push(userBan);
   
   return bans;
@@ -43,7 +42,7 @@ function checkBan(ip, mac, network, provider, switchInfo, username) {
 
 // ===================== Регистрация =====================
 
-app.post('/api/register', (req, res) => {
+app.post('/api/register', async (req, res) => {
   const { username, password, ip, mac, network, provider, switchInfo } = req.body;
   
   if (!username || !password) {
@@ -55,13 +54,13 @@ app.post('/api/register', (req, res) => {
   }
   
   try {
-    const bans = checkBan(ip, mac, network, provider, switchInfo, username);
+    const bans = await checkBan(ip, mac, network, provider, switchInfo, username);
     if (bans.length > 0) {
       return res.json({ success: false, message: 'Вы забанены! Причина: ' + bans[0].reason });
     }
     
-    db.prepare('INSERT INTO users (username, password, ip_address, mac_address, network, provider) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(username, password, ip, mac, network, provider);
+    await run('INSERT INTO users (username, password, ip_address, mac_address, network, provider) VALUES (?, ?, ?, ?, ?, ?)',
+      [username, password, ip, mac, network, provider]);
     
     res.json({ success: true, message: 'Регистрация успешна!' });
   } catch (err) {
@@ -75,20 +74,20 @@ app.post('/api/register', (req, res) => {
 
 // ===================== Авторизация =====================
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   
   if (!username || !password) {
     return res.json({ success: false, message: 'Введите имя пользователя и пароль' });
   }
   
-  const user = db.prepare('SELECT * FROM users WHERE username = ? AND password = ?').get(username, password);
+  const user = await get('SELECT * FROM users WHERE username = ? AND password = ?', [username, password]);
   
   if (!user) {
     return res.json({ success: false, message: 'Неверное имя пользователя или пароль' });
   }
   
-  db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?').run(user.id);
+  await run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
   
   res.json({
     success: true,
@@ -102,26 +101,26 @@ app.post('/api/login', (req, res) => {
 
 // ===================== Получение пользователей =====================
 
-app.get('/api/users', (req, res) => {
+app.get('/api/users', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const user = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!user || user.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
   
-  const users = db.prepare('SELECT id, username, role, created_at, last_login FROM users ORDER BY created_at DESC').all();
+  const users = await all('SELECT id, username, role, created_at, last_login FROM users ORDER BY created_at DESC');
   res.json({ success: true, users });
 });
 
 // ===================== Бан пользователя =====================
 
-app.post('/api/ban', (req, res) => {
+app.post('/api/ban', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const admin = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const admin = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!admin || admin.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
@@ -134,8 +133,8 @@ app.post('/api/ban', (req, res) => {
   
   try {
     const expires_at = duration && duration !== 'never' ? new Date(Date.now() + duration * 60000).toISOString() : null;
-    db.prepare('INSERT INTO bans (username, ban_type, ban_value, reason, banned_by, expires_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(target_username, ban_type, ban_value, reason, admin.id, expires_at);
+    await run('INSERT INTO bans (username, ban_type, ban_value, reason, banned_by, expires_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [target_username, ban_type, ban_value, reason, admin.id, expires_at]);
     
     res.json({ success: true, message: 'Пользователь забанен' });
   } catch (err) {
@@ -145,63 +144,63 @@ app.post('/api/ban', (req, res) => {
 
 // ===================== Разбан =====================
 
-app.post('/api/unban', (req, res) => {
+app.post('/api/unban', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const admin = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const admin = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!admin || admin.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
   
   const { ban_id } = req.body;
-  db.prepare('UPDATE bans SET is_active = 0 WHERE id = ?').run(ban_id);
+  await run('UPDATE bans SET is_active = 0 WHERE id = ?', [ban_id]);
   res.json({ success: true, message: 'Бан снят' });
 });
 
 // ===================== Получение банов =====================
 
-app.get('/api/bans', (req, res) => {
+app.get('/api/bans', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const user = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!user || user.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
   
-  const bans = db.prepare(`
+  const bans = await all(`
     SELECT b.*, u.username as banned_by_name 
     FROM bans b 
     LEFT JOIN users u ON b.banned_by = u.id 
     ORDER BY b.created_at DESC
-  `).all();
+  `);
   
   res.json({ success: true, bans });
 });
 
 // ===================== Отправка сообщения =====================
 
-app.post('/api/message', (req, res) => {
+app.post('/api/message', async (req, res) => {
   const { username, message, bot_name } = req.body;
   
   if (!username || !message) {
     return res.json({ success: false, message: 'Заполните все поля' });
   }
   
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
   if (!user) {
     return res.json({ success: false, message: 'Пользователь не найден' });
   }
   
-  const bans = checkBan(user.ip_address, user.mac_address, user.network, user.provider, user.switch, username);
+  const bans = await checkBan(user.ip_address, user.mac_address, user.network, user.provider, user.switch, username);
   if (bans.length > 0) {
     return res.json({ success: false, message: 'Вы забанены! Причина: ' + bans[0].reason });
   }
   
   try {
-    db.prepare('INSERT INTO messages (user_id, username, message, bot_name) VALUES (?, ?, ?, ?)')
-      .run(user.id, username, message, bot_name || null);
+    await run('INSERT INTO messages (user_id, username, message, bot_name) VALUES (?, ?, ?, ?)',
+      [user.id, username, message, bot_name || null]);
     
     res.json({ success: true, message: 'Сообщение отправлено' });
   } catch (err) {
@@ -211,7 +210,7 @@ app.post('/api/message', (req, res) => {
 
 // ===================== Ответы ботов =====================
 
-app.get('/api/bots/responses', (req, res) => {
+app.get('/api/bots/responses', async (req, res) => {
   const { bot_name, message } = req.query;
   
   if (!bot_name || !message) {
@@ -219,7 +218,7 @@ app.get('/api/bots/responses', (req, res) => {
   }
   
   const messages = message.toLowerCase().split(/\s+/);
-  const training = db.prepare('SELECT * FROM bot_training WHERE bot_name = ?').all(bot_name);
+  const training = await all('SELECT * FROM bot_training WHERE bot_name = ?', [bot_name]);
   
   let bestMatch = null;
   let bestScore = 0;
@@ -256,25 +255,25 @@ app.get('/api/bots/responses', (req, res) => {
 
 // ===================== Получение правил =====================
 
-app.get('/api/rules', (req, res) => {
-  const rules = db.prepare('SELECT * FROM rules ORDER BY id').all();
+app.get('/api/rules', async (req, res) => {
+  const rules = await all('SELECT * FROM rules ORDER BY id');
   res.json({ success: true, rules });
 });
 
 // ===================== Статистика =====================
 
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const user = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!user) {
     return res.json({ success: false });
   }
   
-  const totalUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-  const totalMessages = db.prepare('SELECT COUNT(*) as count FROM messages').get().count;
-  const totalBans = db.prepare('SELECT COUNT(*) as count FROM bans WHERE is_active = 1').get().count;
+  const totalUsers = (await get('SELECT COUNT(*) as count FROM users')).count;
+  const totalMessages = (await get('SELECT COUNT(*) as count FROM messages')).count;
+  const totalBans = (await get('SELECT COUNT(*) as count FROM bans WHERE is_active = 1')).count;
   
   res.json({
     success: true,
@@ -282,18 +281,18 @@ app.get('/api/stats', (req, res) => {
       totalUsers,
       totalMessages,
       totalBans,
-      onlineUsers: totalUsers // упрощённо
+      onlineUsers: totalUsers
     }
   });
 });
 
 // ===================== Обучение ботов =====================
 
-app.post('/api/bot/training', (req, res) => {
+app.post('/api/bot/training', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const admin = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const admin = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!admin || admin.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
@@ -301,40 +300,40 @@ app.post('/api/bot/training', (req, res) => {
   const { bot_name, trigger_text, response, category } = req.body;
   
   try {
-    db.prepare('INSERT INTO bot_training (bot_name, trigger_text, response, category) VALUES (?, ?, ?, ?)')
-      .run(bot_name, trigger_text, response, category || 'general');
+    await run('INSERT INTO bot_training (bot_name, trigger_text, response, category) VALUES (?, ?, ?, ?)',
+      [bot_name, trigger_text, response, category || 'general']);
     res.json({ success: true, message: 'Бот обучен!' });
   } catch (err) {
     res.json({ success: false, message: 'Ошибка обучения' });
   }
 });
 
-app.get('/api/bot/training', (req, res) => {
+app.get('/api/bot/training', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const user = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!user || user.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
   
-  const training = db.prepare('SELECT * FROM bot_training ORDER BY bot_name, id').all();
+  const training = await all('SELECT * FROM bot_training ORDER BY bot_name, id');
   res.json({ success: true, training });
 });
 
 // ===================== Обновление роли =====================
 
-app.post('/api/user/update-role', (req, res) => {
+app.post('/api/user/update-role', async (req, res) => {
   const session = req.headers['x-session'];
   if (!session) return res.json({ success: false });
   
-  const admin = db.prepare('SELECT * FROM users WHERE username = ?').get(session.username);
+  const admin = await get('SELECT * FROM users WHERE username = ?', [session.username]);
   if (!admin || admin.role !== 'admin') {
     return res.json({ success: false, message: 'Нет доступа' });
   }
   
   const { username, role } = req.body;
-  db.prepare('UPDATE users SET role = ? WHERE username = ?').run(role, username);
+  await run('UPDATE users SET role = ? WHERE username = ?', [role, username]);
   res.json({ success: true, message: 'Роль обновлена' });
 });
 
