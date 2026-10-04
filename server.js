@@ -561,6 +561,17 @@ app.post('/api/user/update-role', async (req, res) => {
   res.json({ success: true, message: 'Роль обновлена' });
 });
 
+// ===================== Смена пароля админа =====================
+
+app.post('/api/admin/reset-password', async (req, res) => {
+  const { new_password } = req.body;
+  if (!new_password) {
+    return res.json({ success: false, message: 'Укажите новый пароль' });
+  }
+  await run("UPDATE users SET password = ? WHERE username = ?", [new_password, 'Admin']);
+  res.json({ success: true, message: 'Пароль изменён' });
+});
+
 // ===================== Получение пользователей =====================
 
 app.get('/api/users', async (req, res) => {
@@ -617,6 +628,14 @@ app.post('/api/message', async (req, res) => {
 
 // ===================== Запуск =====================
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log('✅ Сервер запущен на порту ' + PORT);
+  
+  // Устанавливаем пароль админа при каждом запуске
+  try {
+    await run("UPDATE users SET password = ? WHERE username = ?", ['K9#xL2$vN8@qR5&wP3!mZ7', 'Admin']);
+    console.log('✅ Пароль админа установлен');
+  } catch(e) {
+    console.log('⚠️ Не удалось установить пароль админа');
+  }
 });
