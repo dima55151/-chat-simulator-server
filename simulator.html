@@ -91,13 +91,15 @@ const ANTI_CHEAT = {
   isBanned: false,
   sessionKey: null,
   integrityHash: '',
+  firstScan: true,
+  disabled: true, // Античит отключён для стабильной работы
   
   init() {
     this.sessionKey = this.generateSessionKey();
     this.integrityHash = this.calculateIntegrityHash();
-    this.startScanning();
-    this.setupProtections();
-    this.logAction('Античит инициализирован');
+    this.firstScan = false;
+    // Все проверки отключены для стабильной работы
+    this.logAction('Античит инициализирован (режим: отключён)');
   },
   
   generateSessionKey() {
@@ -110,196 +112,34 @@ const ANTI_CHEAT = {
   },
   
   calculateIntegrityHash() {
-    const code = document.body.innerHTML;
-    let hash = 0;
-    for(let i = 0; i < code.length; i++) {
-      const char = code.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(16);
+    return 'disabled_v1';
   },
   
   setupProtections() {
-    // Disable right-click
-    document.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      this.detectViolation('Попытка открыть контекстное меню');
-      return false;
-    });
-    
-    // Disable keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      // F12
-      if(e.key === 'F12') {
-        e.preventDefault();
-        this.detectViolation('Попытка открыть DevTools (F12)');
-        return false;
-      }
-      // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
-      if(e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) {
-        e.preventDefault();
-        this.detectViolation('Попытка открыть DevTools (Ctrl+Shift+' + e.key + ')');
-        return false;
-      }
-      // Ctrl+U (view source)
-      if(e.ctrlKey && e.key.toUpperCase() === 'U') {
-        e.preventDefault();
-        this.detectViolation('Попытка посмотреть исходный код (Ctrl+U)');
-        return false;
-      }
-      // Ctrl+A (select all in console)
-      if(e.ctrlKey && e.key === 'a' && e.target === document.body) {
-        this.detectViolation('Попытка выделить весь код');
-      }
-    });
-    
-    // Detect DevTools opening
-    const threshold = 160;
-    const checkDevTools = () => {
-      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-      if(widthThreshold || heightThreshold) {
-        this.detectViolation('Обнаружен открыт DevTools');
-      }
-    };
-    setInterval(checkDevTools, 1000);
-    
-    // Detect console clearing
-    const originalClear = console.clear;
-    console.clear = () => {
-      this.detectViolation('Попытка очистить консоль');
-      originalClear.apply(console, arguments);
-    };
-    
-    // Protect localStorage from tampering
-    const originalSetItem = localStorage.setItem;
-    const originalGetItem = localStorage.getItem;
-    localStorage.setItem = (key, value) => {
-      if(key === 'chatSimState') {
-        try {
-          const data = JSON.parse(value);
-          if(data.sessionKey && data.sessionKey !== this.sessionKey) {
-            this.detectViolation('Попытка подмены сессии через localStorage');
-            return;
-          }
-        } catch(e) {}
-      }
-      return originalSetItem.call(localStorage, key, value);
-    };
-    
-    // Detect copy-paste of sensitive data
-    document.addEventListener('copy', (e) => {
-      if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        this.logAction('Копирование данных из формы');
-      }
-    });
-    
-    // Auto-logout on tab close
-    window.addEventListener('beforeunload', () => {
-      this.logAction('Вкладка закрыта');
-    });
+    // Все проверки отключены для стабильной работы
+    // Правый клик, F12, Ctrl+Shift+I и другие клавиши работают без ограничений
   },
   
   startScanning() {
-    // Scan every 30 seconds
-    this.scanInterval = setInterval(() => {
-      this.scanIntegrity();
-      this.checkRateLimit();
-    }, 30000);
-    
-    // Monitor DOM changes
-    const observer = new MutationObserver((mutations) => {
-      for(const mutation of mutations) {
-        if(mutation.addedNodes.length > 0) {
-          for(const node of mutation.addedNodes) {
-            if(node.nodeType === 1) { // Element node
-              const tag = node.tagName.toLowerCase();
-              if(tag === 'iframe' || tag === 'script') {
-                this.detectViolation('Обнаружено добавление элемента: ' + tag);
-                node.remove();
-              }
-              // Check for injected scripts
-              if(node.getAttribute && node.getAttribute('src')) {
-                const src = node.getAttribute('src');
-                if(src.includes('evil') || src.includes('hack') || src.includes('cheat')) {
-                  this.detectViolation('Обнаружен вредоносный скрипт: ' + src);
-                  node.remove();
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Сканирование отключено
   },
   
   scanIntegrity() {
-    const currentHash = this.calculateIntegrityHash();
-    if(currentHash !== this.integrityHash) {
-      this.detectViolation('Изменение целостности кода (хеш: ' + currentHash + ')');
-      this.integrityHash = currentHash;
-    }
+    // Проверка целостности отключена
   },
   
   checkRateLimit() {
-    const now = Date.now();
-    const oneMinuteAgo = now - 60000;
-    
-    // Count actions in last minute
-    this.actionRate = this.violations.filter(v => v.time > oneMinuteAgo).length;
-    
-    if(this.actionRate > 10) {
-      this.detectViolation('Подозрительная активность: слишком много действий');
-      this.suspiciousActions++;
-      
-      if(this.suspiciousActions >= 3) {
-        this.banUser('Античит: подозрительная активность');
-      }
-    }
+    // Проверка скорости отключена
   },
   
   detectViolation(reason) {
-    if(this.isBanned) return;
-    
-    const violation = {
-      reason: reason,
-      time: Date.now(),
-      date: new Date().toLocaleString('ru-RU'),
-      session: this.sessionKey,
-      userAgent: navigator.userAgent,
-      screen: screen.width + 'x' + screen.height,
-      language: navigator.language
-    };
-    
-    this.violations.push(violation);
-    this.logAction('НАРУШЕНИЕ: ' + reason);
-    
-    // Show warning
-    notify('⚠️ Обнаружено нарушение: ' + reason, 'error');
-    
-    // Check if max violations reached
-    if(this.violations.length >= this.maxViolations) {
-      this.banUser('Античит: превышено количество нарушений');
-    }
+    // Нарушения не фиксируются
+    return;
   },
   
   banUser(reason) {
-    if(this.isBanned) return;
-    this.isBanned = true;
-    
-    this.logAction('🚫 ПОЛЬЗОВАТЕЛЬ ЗАБАНЕН: ' + reason);
-    
-    // Show ban screen
-    const screen = document.createElement('div');
-    screen.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a1a;z-index:99999;display:flex;align-items:center;justify-content:center;';
-    screen.innerHTML = '<div class="card" style="width:600px;padding:40px;text-align:center"><h2 style="color:#ff3344;font-size:32px;margin-bottom:20px">🚫 ДОСТУП ЗАБЛОКИРОВАН</h2><div style="text-align:left;margin-bottom:20px;background:#161638;padding:20px;border-radius:8px"><p style="margin-bottom:10px"><b>Причина:</b> ' + reason + '</p><p style="margin-bottom:10px"><b>Время:</b> ' + new Date().toLocaleString('ru-RU') + '</p><p style="margin-bottom:10px"><b>ID сессии:</b> ' + this.sessionKey.substring(0,16) + '...</p><p style="margin-bottom:10px"><b>Нарушений:</b> ' + this.violations.length + '</p></div><p style="color:#8888aa;font-size:14px">Эта система защищает чат от читов, взлома и жульничества.<br>Если вы считаете это ошибкой — обратитесь к администратору.</p></div>';
-    document.body.appendChild(screen);
-    
-    // Clear session
-    localStorage.removeItem('chatSimState');
-    this.violations = [];
+    // Бан отключён
+    return;
   },
   
   logAction(action) {
@@ -310,24 +150,20 @@ const ANTI_CHEAT = {
       type: 'security'
     };
     
-    // Add to action log if exists
     if(state.actionLog) {
       state.actionLog.unshift(logEntry);
       if(state.actionLog.length > 100) state.actionLog.pop();
     }
-    
-    // Also log to console (hidden)
-    console.log('%c[Античит] ' + action, 'color: #ff3344; font-weight: bold;');
   },
   
   getSecurityStats() {
     return {
-      violations: this.violations.length,
+      violations: 0,
       maxViolations: this.maxViolations,
-      isBanned: this.isBanned,
+      isBanned: false,
       sessionKey: this.sessionKey,
       integrityHash: this.integrityHash,
-      suspiciousActions: this.suspiciousActions
+      suspiciousActions: 0
     };
   }
 };
