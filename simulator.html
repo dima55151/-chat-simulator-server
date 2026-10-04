@@ -1125,8 +1125,22 @@ function handleModCommand(text) {
     return;
   }
   
+  // /clear — очистить чат
+  if(cmd === '/clear') {
+    if(!['admin','owner'].includes(currentUser.role)) {
+      addChatMessage('Система','❌ Только администраторы могут очищать чат!');
+      return;
+    }
+    const count = state.messages.length;
+    state.messages = [];
+    renderChat();
+    addChatMessage('Система','🗑️ Чат очищен ('+count+' сообщений удалено) (Админ: '+currentUser.username+')');
+    addLog('Чат очищен админом: '+currentUser.username);
+    return;
+  }
+  
   // Неизвестная команда
-  addChatMessage('Система','❓ Неизвестная команда. Доступные: /mute, /unmute, /kick, /ban, /unban');
+  addChatMessage('Система','❓ Неизвестная команда. Доступные: /mute, /unmute, /kick, /ban, /unban, /clear');
 }
 
 function addSampleUser() {
