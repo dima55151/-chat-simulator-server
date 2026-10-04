@@ -17,6 +17,7 @@ db.serialize(() => {
       network TEXT,
       provider TEXT,
       switch TEXT,
+      router TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_login DATETIME
     )

@@ -10,7 +10,7 @@ app.use(express.json());
 
 // ===================== Проверка банов =====================
 
-async function checkBan(ip, mac, network, provider, switchInfo, username) {
+async function checkBan(ip, mac, network, provider, switchInfo, router, username) {
   const bans = [];
   
   if (ip) {
@@ -31,6 +31,12 @@ async function checkBan(ip, mac, network, provider, switchInfo, username) {
   }
   if (switchInfo) {
     const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['switch', switchInfo]);
+    if (ban) bans.push(ban);
+  }
+  
+  const router = req.body.router;
+  if (router) {
+    const ban = await get('SELECT * FROM bans WHERE ban_type = ? AND ban_value = ? AND is_active = 1', ['router', router]);
     if (ban) bans.push(ban);
   }
   
@@ -59,8 +65,8 @@ app.post('/api/register', async (req, res) => {
       return res.json({ success: false, message: 'Вы забанены! Причина: ' + bans[0].reason });
     }
     
-    await run('INSERT INTO users (username, password, ip_address, mac_address, network, provider) VALUES (?, ?, ?, ?, ?, ?)',
-      [username, password, ip, mac, network, provider]);
+    await run('INSERT INTO users (username, password, ip_address, mac_address, network, provider, router) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [username, password, ip, mac, network, provider, router || '']);
     
     res.json({ success: true, message: 'Регистрация успешна!' });
   } catch (err) {
@@ -193,7 +199,7 @@ app.post('/api/message', async (req, res) => {
     return res.json({ success: false, message: 'Пользователь не найден' });
   }
   
-  const bans = await checkBan(user.ip_address, user.mac_address, user.network, user.provider, user.switch, username);
+  const bans = await checkBan(user.ip_address, user.mac_address, user.network, user.provider, user.switch, user.router, username);
   if (bans.length > 0) {
     return res.json({ success: false, message: 'Вы забанены! Причина: ' + bans[0].reason });
   }
