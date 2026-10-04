@@ -7,6 +7,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname));
+
+// Главная страница
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/simulator.html');
+});
 
 // ===================== Проверка банов =====================
 
